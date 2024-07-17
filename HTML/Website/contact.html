@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <script src="js/scripts.js"></script>
+</head>
+<body id="contact"> 
+     <div class="container">
+        <header class = "header">
+            <a class="link-title" href="">Minimalstic Website</a>
+        </header>
+
+        <nav class="menu">
+            <a href="index.html">Home</a> &nbsp;&nbsp;&nbsp;
+            <a href="about.html">About</a> &nbsp;&nbsp;&nbsp;
+            <a href="contact.html">Contact</a> &nbsp;&nbsp;&nbsp;
+        </nav>
+        <aside>
+            <h1>side bar</h1>
+        </aside>
+
+     <article class="main">
+       <h1 class="page-heading">Contact</h1>
+       <div id="form">
+            <form method="post" action="JS/process.php">
+                <p>
+                <label for="name">Name:</label>
+                <input type="text" name="Name" placeholder="Enter your name" required>
+                </p>
+                <p>
+                <label for="email">Email:</label>
+                <input type="email" name="Email" required>
+                </p>
+                <p>
+                <label for="name">Subject:</label>
+                <input type="text" name="Subject" required>
+                </p>
+                <p>
+                <label for="name">Message:</label>
+                <textarea name="Message" id="message" cols="30" rows="10"></textarea>
+                </p>
+                <p>
+                <input id=submit type="submit" name="submit" value="Send message">    
+                </p>
+            </form>
+       </div>
+     </article>
+
+     <footer>
+        &copy; 2030 minimalistic Website &nbsp; <span class="separator">|</span> Desgin by me <a href="">link</a>
+
+    </footer>
+    </div>
+</body>
+</html>

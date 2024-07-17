@@ -1,0 +1,34 @@
+/* p{
+    color:green;
+    font-size: 24px; 
+    font-weight: bold;  
+} */
+
+body {background:gray}
+p,h1 {color:white}
+
+div p {color:black}
+div {
+    border: 1px solid black;
+    width:50%;
+    float:right;
+    border-radius: 25px;
+    margin: 20px; /*space between component and page*/
+    padding: 40px; /*space inside component, between border and text*/
+
+}
+div ul{
+    list-style-type: none;
+    list-style-type: square; /*last style will take place*/
+
+}
+
+/* refers to specific ID */
+#first-para {       
+    color:blue
+}
+
+/* refers to specific class */
+.first-para {
+    color:purple
+}

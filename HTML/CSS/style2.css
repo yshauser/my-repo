@@ -1,0 +1,46 @@
+/* refers to specific ID */
+#page-title {       
+    text-align: center;
+    color:red;
+}
+
+
+#pic-css{
+    border: 5px solid red;
+    width: 200px;
+    height: 200px;
+    margin: auto;
+    background-color: #000;
+    padding: 20px 20px 20px 20px;
+    background-image: url(https://www.oppaca.com/hubfs/Imported_Blog_Media/158_cop2-1.jpg);
+    background-size: 100%;
+}
+#hovers{
+    border: 5px dashed red;
+    width: 300px;
+    margin: auto;
+    text-align: center;
+}
+#hovers:hover{
+    background-color: black;
+    border: 2px solid blue;
+    color:white;
+    text-align: center;
+}
+
+
+#pic-container{
+    width: 200px;
+  /*  height: 200px;*/
+    margin: 0 auto;
+    border: 2px solid red;
+    padding: 20px;
+    background: #000;
+    opacity: 0.5;
+}
+#pic-container:hover{
+    opacity: 1;
+}
+#image{
+    width: 100%;
+}

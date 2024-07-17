@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <form action="process.php" method="post"> <!--the action sends the info collected by the HTML to somewhere -->
+        <!-- label tag can replace the p tag -->
+    <label for="name">Name
+        <input type="text" placeholder="Enter name">
+    </label>
+    <p> Email
+        <input name="email" type="email"> <!-- the 'name' is for the php to process the data-->
+    </p>
+    <p> Password
+        <input name="pw" type="password">
+    </p>    
+    <p>
+        File
+        <input name="file" type="file">
+    </p>    
+    <p> 
+        <input name="submit" type="submit">
+    </p>
+    </form>
+</body>
+</html>
