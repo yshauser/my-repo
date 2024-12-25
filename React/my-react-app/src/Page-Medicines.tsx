@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Medicine, NurofenKids, NovimolTipTipot, Acamol500, Ibufen200, Ibufen400 } from './medicinesData';
+import { Medicine,SuspensionMedicine,CapletMedicine, NurofenKids, NovimolTipTipot, Acamol500, Ibufen200, Ibufen400 } from './medicinesData';
 
 // Define a type for our medicine groups
 type MedicineGroup = {
   name: string;
-  data: Medicine[];
+  data: Medicine[]; // This is an array of Medicine, which is either SuspensionMedicine or CapletMedicine
 };
 
 const Page_Medicines = () => {
@@ -21,9 +21,46 @@ const Page_Medicines = () => {
   ];
 
   // Helper function to check if all items in the data have equal low and high values for suspension medicines
-  const hasEqualValues = (data: Medicine[], key1: string, key2: string): boolean => {
-    return data.every(item => item[key1] === item[key2]);
-  };
+  // const hasEqualValues = (data: Medicine[], key1: string, key2: string): boolean => {
+    const hasEqualValues = (data: MedicineGroup["data"], key1: string, key2: string): boolean => {
+      if (data.length === 0) return false;
+    
+      const firstItem = data[0];
+    
+      if (firstItem.type === "suspension") {
+        // Handling for SuspensionMedicine
+        return data.every(item => {
+          const suspensionItem = item as SuspensionMedicine;
+    
+          // Check for w_low and w_high in SuspensionMedicine
+          if (key1 === "w_low" && key2 === "w_high") {
+            return suspensionItem.entries.every(entry => entry[key1] === entry[key2]);
+          }
+    
+          // Check for perDay_low and perDay_high in SuspensionMedicine
+          if (key1 === "perDay_low" && key2 === "perDay_high") {
+            return suspensionItem.entries.every(entry => entry[key1] === entry[key2]);
+          }
+    
+          return true;
+        });
+      } else if (firstItem.type === "caplets") {
+        // Handling for CapletMedicine
+        return data.every(item => {
+          const capletItem = item as CapletMedicine;
+    
+          // Check for dos_low and dos_high in CapletMedicine
+          if (key1 === "dos_low" && key2 === "dos_high") {
+            return capletItem.entries.every(entry => entry[key1] === entry[key2]);
+          }
+    
+          return true;
+        });
+      }
+    
+      return false;
+    };
+        
 
   return (
     <main className="flex-1 flex flex-col p-4 bg-white overflow-auto">
@@ -62,11 +99,22 @@ const Page_Medicines = () => {
                 <tr className="bg-emerald-100">
                   {selectedMedicine.data[0].type === "suspension" ? (
                     <>
+                     {hasEqualValues(selectedMedicine.data, 'w_low', 'w_high') ? (
+                    <th className="border p-2 text-right">משקל (ק״ג)</th>
+                    ) : (
+                    <>
                       <th className="border p-2 text-right">משקל מינימום (ק״ג)</th>
                       <th className="border p-2 text-right">משקל מקסימום (ק״ג)</th>
+                    </>)}
                       <th className="border p-2 text-right">מינון (מ״ל או מ"ג)</th>
-                      <th className="border p-2 text-right">פעמים ביום</th>
-                      {/* <th className="border p-2 text-right">מקסימום מ"ל ליום</th> */}
+                     {hasEqualValues(selectedMedicine.data, 'perDay_low', 'perDay_high') ? (
+                    <th className="border p-2 text-right">פעמים ביום</th>
+                  ) : (
+                    <>
+                      <th className="border p-2 text-right">מינימום פעמים ביום</th>
+                      <th className="border p-2 text-right">מקסימום פעמים ביום</th>
+                    </>
+                  )}                      {/* <th className="border p-2 text-right">מקסימום מ"ל ליום</th> */}
                     </>
                   ) : (
                     <>
@@ -80,36 +128,52 @@ const Page_Medicines = () => {
                 </tr>
               </thead>
               <tbody>
-                {selectedMedicine.data[0].entries.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    {selectedMedicine.data[0].type === "suspension" ? (
-                      <>
-                        <td className="border p-2 text-right">{item.w_low}</td>
-                        <td className="border p-2 text-right">{item.w_high}</td>
-                        <td className="border p-2 text-right">{item.dos}</td>
-                        {item.perDay_high === item.perDay_low ?(
-                        <td className="border p-2 text-right">{item.perDay_high}</td>
-                        ):(
-                        <td className="border p-2 text-right">{item.perDay_high} - {item.perDay_low}</td>
-                        )}
-                        {/* <td className="border p-2 text-right">{item.maxDay}</td> */}
-                      </>
-                    ) : (
-                      <>
-                        <td className="border p-2 text-right">{item.age_low}</td>
-                        <td className="border p-2 text-right">{item.age_high}</td>
-                        {item.dos_high === item.dos_low ?(
-                          <td className="border p-2 text-right">{item.dos_low}</td>
-                        ):(
-                          <td className="border p-2 text-right">{item.dos_high} - {item.dos_low}</td>
-                        )}
-                        <td className="border p-2 text-right">{item.hoursInterval_high} - {item.hoursInterval_low}</td>
-                        <td className="border p-2 text-right">{item.maxDay}</td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
+  {selectedMedicine?.data[0].entries.map((item, index) => (
+    <tr key={index} className="hover:bg-gray-50">
+      {selectedMedicine.data[0].type === "suspension" ? (
+        (item as SuspensionMedicine["entries"][0]) && (
+          <>
+            {hasEqualValues(selectedMedicine.data, 'w_low', 'w_high') ? (
+              <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).w_low}</td>
+            ) : (
+              <>
+                <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).w_low}</td>
+                <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).w_high}</td>
+              </>
+            )}
+
+            <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).dos}</td>
+
+            {hasEqualValues(selectedMedicine.data, 'perDay_low', 'perDay_high') ? (
+              <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).perDay_low}</td>
+            ) : (
+              <>
+                <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).perDay_low}</td>
+                <td className="border p-2 text-right">{(item as SuspensionMedicine["entries"][0]).perDay_high}</td>
+              </>
+            )}
+          </>
+        )
+      ) : (
+        <>
+          <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_low}</td>
+          <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_high}</td>
+          {(item as CapletMedicine["entries"][0]).dos_high === (item as CapletMedicine["entries"][0]).dos_low ? (
+            <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).dos_low}</td>
+          ) : (
+            <td className="border p-2 text-right">
+              {(item as CapletMedicine["entries"][0]).dos_high} - {(item as CapletMedicine["entries"][0]).dos_low}
+            </td>
+          )}
+          <td className="border p-2 text-right">
+            {(item as CapletMedicine["entries"][0]).hoursInterval_high} - {(item as CapletMedicine["entries"][0]).hoursInterval_low}
+          </td>
+          <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).maxDay}</td>
+        </>
+      )}
+    </tr>
+  ))}
+</tbody>
             </table>
           </div>
         </div>

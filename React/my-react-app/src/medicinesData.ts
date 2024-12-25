@@ -21,7 +21,7 @@ interface SuspensionEntry{
 }
 interface CapletEntry{
   age_low: number; // Minimum age for caplets
-  age_high: number; // Maximum age for caplets
+  age_high?: number; // Maximum age for caplets
   dos_low?: number;
   dos_high?: number;
   hoursInterval_low?: number;
@@ -40,7 +40,7 @@ interface CapletMedicine extends MedicineBase {
 }
 
 // Union type to represent both medicine types
-type Medicine = SuspensionMedicine | CapletMedicine;
+export type Medicine = SuspensionMedicine | CapletMedicine;
   
   export const NurofenKids: SuspensionMedicine = {
   id: 1,
@@ -107,25 +107,3 @@ type Medicine = SuspensionMedicine | CapletMedicine;
   export const IbuprofenNames = ["IbuPro", "Ibufen", "Nurofen", "Advil", "Adex"];
   export const ParacetamolNames = ["Acamol", "Dexamol", "Paramol"];
   export const MEDICINES_TYPES = ["Syrup", "Caplets", "Granules", "suppository"]
-
-// export interface Medicine_suspension {
-//     w_low?: number;
-//     w_high?: number;
-//    dos?: number;
-//     perDay_low?: number;
-//     perDay_high?: number;
-//    maxDay?: number;
-//    maxDayPerKg?: number;
-//     type: String; 
-//   }
-
-  // export interface Medicine_caplets {
-  //   age_low?: number;
-  //   age_high?: number;
-  //   dos_low?: number;
-  //   dos_high?: number;
-  //   hoursInterval_low?: number;
-  //   hoursInterval_high?: number;
-  //   maxDay?: number;
-  //   type: String; 
-  // }
