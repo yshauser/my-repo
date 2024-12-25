@@ -28,13 +28,13 @@ interface CapletEntry{
   hoursInterval_high?: number;
   maxDay?: number;
 }
-interface SuspensionMedicine extends MedicineBase {
+export interface SuspensionMedicine extends MedicineBase {
   type: "suspension"; // Type is explicitly 'suspension' for this interface
   entries: SuspensionEntry[];
 }
 
 // Define the structure for medicines of type 'caplets'
-interface CapletMedicine extends MedicineBase {
+export interface CapletMedicine extends MedicineBase {
   type: "caplets"; // Type is explicitly 'caplets' for this interface
   entries: CapletEntry[];
 }
