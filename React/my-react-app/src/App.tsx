@@ -1,115 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Pill, Calendar, Users, Menu, VaultIcon } from 'lucide-react';
+import { Home, Pill, Calendar, Users, Menu } from 'lucide-react';
 import MedicinesPage from './Page-Medicines';
 import LogPage from './Page-Log';
 import KidsPage from './Page-Kids';
-import {NurofenKids, NovimolTipTipot, Acamol500,Ibufen200,Ibufen400,Medicine} from './medicinesData.ts';
-import { calculateAge } from './Page-Kids'; // Adjust the path based on your file structure
+import { KidManager } from './kidManager';
+import { MedicineManager } from './medicineManager';
+import { LogEntry, Kid } from './types';
 
-// interface KidData{
-//   KidID: string;
-//   Name: string;
-//   Weight: number|undefined;
-//   Birthdate: string|undefined;
-//   Age: number|undefined;
-// }
-
-interface KidData {
-  [key: string]: string | number | undefined;
-}
-
-interface Kid {
-  id: string;
-  name: string;
-  birthDate?: string;
-  age?: number;
-  weight?: number;
-  favoriteMedicine?: string;
-}
-
-interface MedicineGroup {
-  name: string;
-  data: Medicine[];
-}
 
 // Define the interface for the props
-  interface MedicineDialogProps {
-  isOpen: boolean;           // isOpen should be a boolean
-  onClose: () => void;       // onClose should be a function with no arguments and no return value
-  kidName: string;           // kidName should be a string
-  kidWeight: number|undefined;         // kidWeight should be a number
-  kidAge: number|undefined;            // kidAge should be a number
+
+interface HomePageProps {
+  logData: LogEntry[];
+  setLogData: React.Dispatch<React.SetStateAction<LogEntry[]>>;
+}
+interface MedicineDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  kidName?: string;
+  kidWeight?: number | undefined;
+  kidAge?: number | undefined;
+  logData: LogEntry[];
+  setLogData: React.Dispatch<React.SetStateAction<LogEntry[]>>;
+  isQuickAdd?: boolean;  // A prop to differentiate between quick add and kid-specific dialog
 }
 
 // Dialog component for medicine administration
-const MedicineDialog: React.FC<MedicineDialogProps> = ({ isOpen, onClose, kidName, kidWeight, kidAge }) => {
-  const [temperature, setTemperature] = useState('37.0');
+const MedicineDialog: React.FC<MedicineDialogProps > = ({
+    isOpen, onClose, kidName: initialKidName, kidWeight: initialKidWeight, kidAge: initialKidAge, logData, setLogData, isQuickAdd = false }) => {
+  const [temperature, setTemperature] = useState('');
   const [selectedMedicine, setSelectedMedicine] = useState('');
-  const [dosage, setDosage] = useState('');
+  const [recommendedDosage, setRecommendedDosage] = useState('');
+  const [actualDosage, setActualDosage] = useState('');
+  const [kidName, setKidName] = useState(initialKidName || '');
+  const [weight, setWeight] = useState(initialKidWeight?.toString() || '');
+  const [age, setAge] = useState(initialKidAge?.toString() || '');
 
- // Define our medicine groups
- const medicineGroups: MedicineGroup[] = [
-  { name: 'נורופן לילדים', data: [NurofenKids] },
-  { name: 'נובימול טיפטיפות', data: [NovimolTipTipot] },
-  { name: 'אקמול 500', data: [Acamol500] },
-  { name: 'איבופרופן 200', data: [Ibufen200] },
-  { name: 'איבופרופן 400', data: [Ibufen400] },
-];
-
-  console.log ('Yossi App', {medicineGroups});
-
-   // Calculate recommended dosage based on selected medicine and kid's details
-   
-   const calculateDosage = (medicineName: string) => {
-    console.log ('app calc dos', {medicineName}, medicineGroups);
-  // Find the group that has the matching medicineName
-  const medicineGroup = medicineGroups.find(group => group.name === medicineName);
-  console.log('app calc dos group', medicineGroup);
-
- // If the group is found, use its data to find the medicine
-  if (medicineGroup) {
-    const medicine = medicineGroup.data[0]; // Assuming each group has only one medicine in its `data`
-    console.log('app calc dos med', medicine);
-
-    if (!medicine) return '';
-
-
-    if (medicine.type === 'suspension') {
-      const entry = medicine.entries.find(
-        e => kidWeight as number>= e.w_low && kidWeight as number <= e.w_high
-      );
-      if (entry?.dos) {
-        return `${entry.dos} מ"ל`;
-      }
-    } else if (medicine.type === 'caplets') {
-      const entry = medicine.entries.find(
-        e => kidAge as number >= e.age_low && (!e.age_high || kidAge as number <= e.age_high)
-      );
-      console.log('app calc dos caplets', {kidAge, kidName, kidWeight,entry});
-      if (entry?.dos_low) {
-        if (!entry.dos_high || entry.dos_high === entry.dos_low){
-          return `${entry.dos_low} קפליות`;
-        }else{
-          return  `${entry.dos_low}-${entry.dos_high} קפליות`
-        }
-      }
-    }
-  }
-    return '';
-  };
 
   useEffect(() => {
-    if (selectedMedicine) {
-      const recommended = calculateDosage(selectedMedicine);
-      setDosage(recommended);
-    }
-  }, [selectedMedicine]);
+    if (selectedMedicine && weight) {
+      const weightNum = parseFloat(weight);
+      const ageNum = age ? parseFloat(age) : undefined;
+      const recommended = MedicineManager.calculateDosage(selectedMedicine, weightNum, ageNum);
+      setRecommendedDosage(recommended);
+      
+      // Extract the higher value if it's a range, or use the single value
+      const match = recommended.match(/(\d+(?:\.\d+)?)/g);
+      if (match && match.length > 0) {
+          // Get the last number in case it's a range (which will be the higher value)
+          const highestValue = match[match.length - 1];
+          setActualDosage(highestValue);
+        } else {
+          setActualDosage('');
+        }
+      } else {
+        setRecommendedDosage('');
+        setActualDosage('');
+      }
+      }, [selectedMedicine, weight, age]);
 
+  const handleTemperatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty input for better typing experience
+    if (value === '') {setTemperature(''); return;}
+    // Allow typing decimal point
+    if (value === '.') {setTemperature('0.');return;}
+    if (value === '3' || value === '4') {setTemperature(value);}
+    
+    // Parse the number for validation
+    const numValue = parseFloat(value);
+        
+    // Check if it's a valid number and within range
+    if (!isNaN(numValue)) {
+      if (numValue >= 34 && numValue <= 43) {
+        setTemperature(value);
+      } else if (value.endsWith('.')) {
+        // Allow typing decimal point even if the current number is out of range
+        setTemperature(value);
+      }
+    }
+  };
+    
+  const validateTemperature = () => {
+    const numValue = parseFloat(temperature);
+    if (!isNaN(numValue) && (numValue < 34 || numValue > 43)) {
+      setTemperature('');
+    }
+  };
+      
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log({ kidName, temperature, selectedMedicine, dosage });
+    const now = new Date();
+    const logHour = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const logDate = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getFullYear()).slice(-2);
+   
+    const logEntry: LogEntry = {
+      id: crypto.randomUUID(),  
+      logDate, logHour, kidName, temperature, selectedMedicine, actualDosage
+    };
+    setLogData([...logData, logEntry]);
+    console.log(' log entry:', {logEntry}); // For debugging
+    // console.log(' log attributes:',{ logDate, logHour,kidName, temperature, selectedMedicine, recommendedDosage, actualDosage });
     onClose();
   };
 
@@ -118,28 +110,96 @@ const MedicineDialog: React.FC<MedicineDialogProps> = ({ isOpen, onClose, kidNam
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl mb-4 text-right">מתן תרופה - {kidName}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-          <input
-              type="number"
-              step="0.1"
-              min="34"
-              max="43"
-              className="w-full p-2 border rounded text-right"
-              placeholder="חום"
-              value={temperature}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                if (val >= 34 && val <= 43) {
-                  setTemperature(e.target.value);
+      <h2 className="text-xl mb-4 text-right">מתן תרופה{kidName && ` - ${kidName}`}</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Kid Name field - shown only in quick add mode or if no initial kid name */}
+        {(isQuickAdd || !initialKidName) && (
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded text-right"
+                  placeholder="שם הילד"
+                  value={kidName}
+                  onChange={(e) => setKidName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          )}
+           {/* Weight field - shown only in quick add mode or if no initial weight */}
+           {(isQuickAdd || !initialKidWeight) && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">ק"ג</span>
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="150"
+                  className="w-full p-2 border rounded text-right"
+                  placeholder="משקל"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+           )}
+          {/* Age field - shown only in quick add mode or if no initial age */}
+          {(isQuickAdd || !initialKidAge) && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">שנים</span>
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="120"
+                  className="w-full p-2 border rounded text-right"
+                  placeholder="גיל"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+           )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">°C</span>
+          <div className="relative flex-1">
+              <input
+                type="text"  // Changed to text type for better control
+                inputMode="decimal"  // Shows numeric keyboard on mobile
+                className="w-full p-2 border rounded text-right"
+                placeholder="חום"
+                value={temperature}
+                onChange={handleTemperatureChange}
+                onBlur={validateTemperature}  // Validate when focus is lost
+                pattern="[0-9]*[.]?[0-9]+"  // Allow only numbers and one decimal point
+              />
+                {(parseFloat(temperature) < 34 || parseFloat(temperature) > 43) &&
+                temperature !== "" ? (
+                  'טמפרטורה חייבת להיות בין 34-43') : ('')
                 }
-              }}
-            />
-            <span className="text-sm text-gray-500 mr-2">°C</span>
-          </div>
-          <div>
-          <input
+            </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500"></span>
+          <div className="relative flex-1">
+            {/*Only show button when there's content */}
+            {selectedMedicine && (
+              <button
+                type="button"
+                className="absolute -right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSelectedMedicine('')}
+                aria-label="clear input"
+              >
+                ×
+              </button>
+            )}
+            <input
               list="medicines"
               className="w-full p-2 border rounded text-right"
               placeholder="תרופה"
@@ -147,21 +207,36 @@ const MedicineDialog: React.FC<MedicineDialogProps> = ({ isOpen, onClose, kidNam
               onChange={(e) => setSelectedMedicine(e.target.value)}
             />
             <datalist id="medicines">
-              {medicineGroups.map(group => (
+              {MedicineManager.medicineGroups.map(group => (
                 group.data.map(medicine => (
                   <option key={medicine.id} value={group.name} />
                 ))
               ))}
             </datalist>
           </div>
+        </div>
+
           <div>
+            <label className="block text-sm text-gray-600 mb-1 text-right">מינון מומלץ</label>
             <input
-              className="w-full p-2 border rounded text-right"
-              placeholder="מינון"
-              value={dosage}
-              onChange={(e) => setDosage(e.target.value)}
+              className="w-full p-2 border rounded text-right bg-gray-50"
+              value={recommendedDosage}
+              readOnly
             />
           </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1 text-right">מינון</label>
+            <input
+              className="w-full p-2 border rounded text-right"
+              type="number"
+              step="0.5"
+              min="0"
+              value={actualDosage}
+              onChange={(e) => setActualDosage(e.target.value)}
+            />
+          </div>
+
           <div className="flex justify-end space-x-2">
             <button
               type="button"
@@ -178,59 +253,25 @@ const MedicineDialog: React.FC<MedicineDialogProps> = ({ isOpen, onClose, kidNam
             </button>
           </div>
         </form>
+        {/* <LogPage logData={logData} /> */}
       </div>
     </div>
   );
 };
 
-// Updated HomePage component
-const HomePage = () => {
+// Updated HomePage component . interfaces defined in the beginning of the page
+
+const HomePage: React.FC<HomePageProps> = ({ logData, setLogData }) => {
   const [selectedKid, setSelectedKid] = useState<Kid | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [kids, setKids] = useState<Kid[]>([]); // Type as Kid[] (array of Kid)
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [kids, setKids] = useState<Kid[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadKids = async () => {
-      try {
-        const response = await fetch('/db/kids.txt');
-        if (!response.ok) throw new Error('Failed to load kids file');
-        const text = await response.text();
-        const kidBlocks = text.split('// Kid #').filter(block => block.trim());
-      
-        const parsedKids = kidBlocks.map(block => {
-          const lines = block.split('\n').filter(line => line.trim());
-          // const kidData: KidData ={};// { KidID: '', Name: '', Weight: undefined, Age: undefined, Birthdate: undefined }; // Initialize with default values
-          const kidData: { [key: string]: string } = {};
-          lines.forEach(line => {
-            const [key, value] = line.split(':').map(part => part.trim());
-            if (key && value) {
-              kidData[key.replace(' ', '')]=value;
-            }
-          });
-      // Set default values and ensure properties have correct types
-      const id = kidData['KidID'] || '';  // Fallback to empty string if undefined
-      const name = kidData['Name'] || '';
-      const birthDate = kidData['BirthDate'] || '';
-      const weight = kidData['Weight'] ? parseFloat(kidData['Weight']) : undefined;
-      const age = birthDate ? calculateAge(birthDate) : undefined;
-      const favoriteMedicine = kidData['FavoriteMedicine'];
-
-      // Return the final kid object
-      return {
-        id,
-        name,
-        birthDate,
-        weight,
-        age,
-        favoriteMedicine
-      };
-    });
-        setKids(parsedKids);
-      } catch (error) {
-        console.error('Error loading kids:', error);
-      }
+      const loadedKids = await KidManager.loadKids();
+      setKids(loadedKids);
     };
-
     loadKids();
   }, []);
 
@@ -253,8 +294,11 @@ const HomePage = () => {
         ))}
       </div>
       
-      <button className="bg-emerald-600 text-white w-32 h-32 rounded-full shadow-md hover:bg-emerald-700 transition-colors flex items-center justify-center text-xl">
-        תן תרופה
+      <button 
+        onClick={() => setIsQuickAddOpen(true)}
+        className="bg-emerald-600 text-white w-32 h-32 rounded-full shadow-md hover:bg-emerald-700 transition-colors flex items-center justify-center text-xl"
+      >
+        תיעוד תרופה/חום
       </button>
 
       <MedicineDialog
@@ -266,13 +310,21 @@ const HomePage = () => {
         kidName={selectedKid?.name ?? ''}
         kidWeight={selectedKid?.weight ?? undefined}
         kidAge={selectedKid?.age ?? undefined}
+        logData={logData}
+        setLogData={setLogData}
       />
+      <MedicineDialog
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        logData={logData}
+        setLogData={setLogData}
+        isQuickAdd={true}
+        />
     </main>
   );
 };
 
-
-// Navigation component that will be shared across all pages
+// Navigation component
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -307,8 +359,10 @@ const Navigation = () => {
   );
 };
 
-// Layout component that wraps all pages
+// Layout component
 const Layout = () => {
+  const [logData, setLogData] = useState<LogEntry[]>([]);
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-md mx-auto h-screen flex flex-col shadow-lg">
@@ -321,8 +375,8 @@ const Layout = () => {
         </header>
 
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/log" element={<LogPage />} />
+          <Route path="/" element={<HomePage logData={logData} setLogData={setLogData} />} />
+          <Route path="/log" element={<LogPage logData={logData} setLogData={setLogData}/>} />
           <Route path="/medicines" element={<MedicinesPage />} />
           <Route path="/kids" element={<KidsPage />} />
         </Routes>

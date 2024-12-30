@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Kid } from './types.ts';
 
-interface Kid {
-  id: string;
-  name: string;
-  birthDate?: string;
-  age?: number;
-  weight?: number;
-  favoriteMedicine?: string;
-}
+// interface Kid {
+//   id: string;
+//   name: string;
+//   birthDate?: string;
+//   age?: number;
+//   weight?: number;
+//   favoriteMedicine?: string;
+// }
+
   // Calculate age function
   export const calculateAge = (birthDate: string): number => {
     const today = new Date();
