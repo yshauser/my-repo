@@ -1,9 +1,0 @@
-import React from 'react';
-
-export const Button: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => {
-  return (
-    <button onClick={onClick} className="btn">
-      {children}
-    </button>
-  );
-};

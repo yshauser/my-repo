@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Edit2, CheckCircle, XCircle, ArrowUpDown, Download, Upload, Save, FileX } from 'lucide-react';
-import { fileOperations } from './fileHandling';
-import { LogEntry } from './types';
+import { LogManager } from '../../services/logManager';
+import { LogEntry } from '../../types';
 
 
 interface LogPageProps {
@@ -9,12 +9,17 @@ interface LogPageProps {
   setLogData: React.Dispatch<React.SetStateAction<LogEntry[]>>;
 }
 
-const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
+export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
   const [filters, setFilters] = useState({ date: '', name: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEntry, setEditedEntry] = useState<LogEntry | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Initial load of logs
+  useEffect(() => {
+        setLogData(logData);
+  }, [setLogData]);
+  
   // Sort and filter the data
   const sortedAndFilteredData = useMemo(() => {
     let filteredData = [...logData].filter(entry => {
@@ -30,16 +35,15 @@ const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
     });
   }, [logData, filters, sortOrder]);
 
+  // delete entry from table in page
   const handleDelete = (id: string) => {
-    console.log ('Log delete', {setLogData});
-    if (!setLogData) return;
-    setLogData(prevData =>prevData.filter(entry => entry.id !== id));
-    console.log ('Log after delete');
-
+      console.log ('Log delete', {setLogData, logData});
+      setLogData(prevData =>prevData.filter(entry => entry.id !== id));
   };
 
+  // edit entry from table in page
   const handleEdit = (id: string) => {
-    console.log ('Log edit');
+    console.log ('Log edit', logData);
     const entryToEdit = logData.find(entry => entry.id === id);
     if (entryToEdit) {
       setEditingId(id);
@@ -47,16 +51,18 @@ const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
     }
   };
 
-  const handleSave = (id: string) => {
-    console.log ('Log save');
-    if (!setLogData || !editedEntry) return;
+  // save changes of table's entry in page
+  const handleSave = async (id: string) => {
+    console.log ('Log save', logData);
+    if (!editedEntry) return;
     setLogData(prevData => prevData.map(entry => entry.id === id ? { ...editedEntry, id } : entry));
     setEditingId(null);
     setEditedEntry(null);
   };
 
+  // revert changes of table's entry in page
   const handleCancel = () => {
-    console.log ('Log cancel');
+    console.log ('Log cancel', logData);
     setEditingId(null);
     setEditedEntry(null);
   };
@@ -66,13 +72,19 @@ const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
   };
 
 // File Operations
-const handleSaveToFile = () => {
-  fileOperations.saveToFile(logData);
+const handleSaveToFile = async () => {
+  try {
+    await LogManager.saveLogs(logData);
+    alert('data saved successfully');
+  } catch (error) {
+    alert('Error saving file: ' + error);
+  }
 };
 
 const handleUpdateFile = async () => {
   try {
-    await fileOperations.updateFile(logData);
+    await LogManager.saveLogs(logData);
+    alert ('file updated successfully');
   } catch (error) {
     alert('Error updating file: ' + error);
   }
@@ -80,17 +92,23 @@ const handleUpdateFile = async () => {
 
 const handleLoadFromFile = async () => {
   try {
-    const data = await fileOperations.loadFromFile();
+    const data = await LogManager.loadLogs();
     setLogData(data);
+    alert ('data loaded successfully');
   } catch (error) {
     alert('Error loading file: ' + error);
   }
 };
 
-const handleClearFile = () => {
+const handleClearFile = async () => {
   if (window.confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
-    const emptyData = fileOperations.clearFile();
-    setLogData(emptyData);
+    try {
+      await LogManager.saveLogs([]);
+      setLogData([]);
+      alert('הנתונים נמחקו בהצלחה');
+    } catch (error) {
+      alert('שגיאה במחיקת הנתונים: ' + error);
+    }
   }
 };
 

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "101",
+	  "name": "שי",
+    "birthDate": "26/01/2007", 
+    "weight": "58.5",
+    "favoriteMedicine": "איבופרופן 200"
+  },
+  {
+    "id": "102",
+	  "name": "מתן",
+    "birthDate": "26/01/2007", 
+    "weight": "59",
+    "favoriteMedicine": "אקמול 500"
+  },
+  {
+    "id": "103",
+	  "name": "אוריה",
+    "birthDate": "06/04/2015", 
+    "weight": "27",
+    "favoriteMedicine": "נורופן לילדים"
+  },
+  {
+    "id": "104",
+	  "name": "בנימין",
+    "birthDate": "30/08/2003", 
+    "weight": "50",
+    "favoriteMedicine": ""
+  }
+]

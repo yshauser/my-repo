@@ -1,0 +1,29 @@
+[
+  {
+    "id": "8ee24e24-dba9-4ccc-a463-c12d85b906a4",
+    "logDate": "29/12/24",
+    "logHour": "12:54",
+    "kidName": "מתן",
+    "temperature": "38.0",
+    "selectedMedicine": "איבופרופן 200",
+    "actualDosage": "1"
+  },
+  {
+    "id": "b6b52ab9-7cdb-4f5b-9ec1-bc7bc88b8784",
+    "logDate": "29/12/24",
+    "logHour": "12:57",
+    "kidName": "שי",
+    "temperature": "37.0",
+    "selectedMedicine": "אקמול 500",
+    "actualDosage": "2"
+  },
+  {
+    "id": "744e875d-eb19-4fc7-b82f-13164bf300ab",
+    "logDate": "29/12/24",
+    "logHour": "15:24",
+    "kidName": "אוריה",
+    "temperature": "37.0",
+    "selectedMedicine": "נורופן לילדים",
+    "actualDosage": "10"
+  }
+]

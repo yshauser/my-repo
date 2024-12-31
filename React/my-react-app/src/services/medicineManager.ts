@@ -1,4 +1,5 @@
-import { Medicine, SuspensionMedicine, CapletMedicine, NurofenKids, NovimolTipTipot, Acamol500, Ibufen200, Ibufen400 } from './medicinesData';
+import { Medicine, SuspensionMedicine, CapletMedicine, NurofenKids, 
+  NovimolTipTipot, Acamol500, Ibufen200, Ibufen400 } from '../medicinesData';
 
 export interface MedicineGroup {
   name: string;

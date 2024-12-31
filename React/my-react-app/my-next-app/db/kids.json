@@ -1,0 +1,23 @@
+[
+  {
+    "id": "101",
+    "name": "שי",
+    "birthDate": "26/01/2007",
+    "weight": 54,
+    "favoriteMedicine": "איבופרופן 200"
+  },
+  {
+    "id": "101",
+    "name": "שי",
+    "birthDate": "26/01/2007",
+    "weight": 56,
+    "favoriteMedicine": "איבופרופן 200"
+  },
+  {
+    "id": "101",
+    "name": "שי",
+    "birthDate": "26/01/2007",
+    "weight": 59.5,
+    "favoriteMedicine": "איבופרופן 200"
+  }
+]

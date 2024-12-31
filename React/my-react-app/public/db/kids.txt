@@ -16,7 +16,7 @@ Favorite Medicine: אקמול 500
 Kid ID: 103
 Name: אוריה
 BirthDate: 06/04/2015
-Weight: 22
+Weight: 25
 Favorite Medicine: נורופן לילדים
 
 // Kid #4

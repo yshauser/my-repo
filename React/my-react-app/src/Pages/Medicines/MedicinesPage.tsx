@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Medicine, SuspensionMedicine, CapletMedicine } from './medicinesData';
-import { MedicineManager, MedicineGroup } from './medicineManager';
+import { Medicine, SuspensionMedicine, CapletMedicine } from '../../medicinesData';
+import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
 
-const Page_Medicines = () => {
+export const MedicinesPage = () => {
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
 
   return (
@@ -65,7 +65,7 @@ const Page_Medicines = () => {
                 </tr>
               </thead>
               <tbody>
-                {selectedMedicine?.data[0].entries.map((item, index) => (
+              {selectedMedicine?.data[0].entries.map((item: SuspensionMedicine["entries"][0] | CapletMedicine["entries"][0], index: number) => (
                   <tr key={index} className="hover:bg-gray-50">
                     {selectedMedicine.data[0].type === "suspension" ? (
                       (item as SuspensionMedicine["entries"][0]) && (
@@ -116,4 +116,4 @@ const Page_Medicines = () => {
   );
 };
 
-export default Page_Medicines;
+export default MedicinesPage;
