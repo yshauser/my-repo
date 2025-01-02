@@ -19,5 +19,13 @@
     "birthDate": "26/01/2007",
     "weight": 59.5,
     "favoriteMedicine": "איבופרופן 200"
+  },
+  {
+    "id": "103",
+    "name": "אוריה",
+    "birthDate": "06/04/2015",
+    "weight": 28,
+    "favoriteMedicine": "נורופן לילדים",
+    "lastUpdated": ""
   }
 ]

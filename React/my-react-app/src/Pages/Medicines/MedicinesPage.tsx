@@ -1,18 +1,34 @@
 import React, { useState } from 'react';
-import { Medicine, SuspensionMedicine, CapletMedicine } from '../../medicinesData';
+import { SuspensionMedicine, CapletMedicine } from '../../types';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
+import AddMedicineForm from '../../components/AddMedicineForm';
 
 export const MedicinesPage = () => {
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
+  const medicineGroups = MedicineManager.getMedicineGroups();
   return (
     <main className="flex-1 flex flex-col p-4 bg-white overflow-auto">
       <h1 className="text-2xl text-emerald-600 mb-6 text-center">תרופות</h1>
+      
+      {/* Add Medicine Button */}
+      <div className="w-full max-w-md mx-auto mb-6">
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="w-full bg-emerald-600 text-white p-3 rounded hover:bg-emerald-700 transition-colors"
+        >
+          {showAddForm ? 'סגור טופס' : 'הוסף תרופה חדשה'}
+        </button>
+      </div>
+
+      {/* Add Medicine Form */}
+      {showAddForm && <AddMedicineForm />}
 
       {/* Medicine List */}
       {!selectedMedicine && (
         <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-          {MedicineManager.medicineGroups.map((medicineGroup) => (
+          {medicineGroups.map((medicineGroup) => (
             <button
               key={medicineGroup.name}
               onClick={() => setSelectedMedicine(medicineGroup)}

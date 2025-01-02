@@ -14,6 +14,8 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEntry, setEditedEntry] = useState<LogEntry | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [loadOption, setLoadOption] = useState('week'); // Default to week
 
   // Initial load of logs
   useEffect(() => {
@@ -34,6 +36,27 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
       return sortOrder === 'desc' ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
     });
   }, [logData, filters, sortOrder]);
+
+  const filterLogsByDate = (logs: LogEntry[], option: string) => {
+    const now = new Date();
+    const getDateFromLog = (log: LogEntry) => {
+      const [day, month, year] = log.logDate.split('/');
+      const [hours, minutes] = log.logHour.split(':');
+      return new Date(2000 + parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+    };
+
+    return logs.filter(log => {
+      const logDate = getDateFromLog(log);
+      const diffHours = (now.getTime() - logDate.getTime()) / (1000 * 60 * 60);
+      switch (option) {
+        case '24h': return diffHours <= 24;
+        case '48h': return diffHours <= 48;
+        case 'week':return diffHours <= 168; // 7 days * 24 hours
+        case 'all': return true;
+        default:    return true;
+      }
+    });
+  };
 
   // delete entry from table in page
   const handleDelete = (id: string) => {
@@ -90,13 +113,19 @@ const handleUpdateFile = async () => {
   }
 };
 
-const handleLoadFromFile = async () => {
+const handleLoadFromFile = () => {
+  setIsLoadDialogOpen(true);
+};
+
+const handleLoadConfirm = async () => {
   try {
-    const data = await LogManager.loadLogs();
-    setLogData(data);
-    alert ('data loaded successfully');
+    const allData = await LogManager.loadLogs();
+    const filteredData = filterLogsByDate(allData, loadOption);
+    setLogData(filteredData);
+    setIsLoadDialogOpen(false);
+    // alert('נתונים נטענו בהצלחה');
   } catch (error) {
-    alert('Error loading file: ' + error);
+    alert('שגיאה בטעינת הנתונים: ' + error);
   }
 };
 
@@ -247,6 +276,55 @@ const handleClearFile = async () => {
       ) : (
         <div className="text-center text-gray-500">לא נמצאו רשומות</div>
       )}
+
+      {/* Load Dialog */}
+      {isLoadDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-semibold mb-4 text-right">בחר טווח זמן לטעינה</h2>
+            
+            <div className="space-y-3">
+              {[
+                { value: '24h', label: '24 שעות אחרונות' },
+                { value: '48h', label: '48 שעות אחרונות' },
+                { value: 'week', label: 'שבוע אחרון' },
+                { value: 'all', label: 'הכל' }
+              ].map((option) => (
+                <label 
+                  key={option.value} 
+                  className="flex items-center justify-end space-x-2 space-x-reverse cursor-pointer"
+                >
+                  <span className="text-right">{option.label}</span>
+                  <input
+                    type="radio"
+                    name="loadOption"
+                    value={option.value}
+                    checked={loadOption === option.value}
+                    onChange={(e) => setLoadOption(e.target.value)}
+                    className="ml-2"
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={handleLoadConfirm}
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+              >
+                טען
+              </button>
+              <button
+                onClick={() => setIsLoadDialogOpen(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* File Operations Buttons */}
       <div className="mb-4 flex gap-2 justify-center">
         <button

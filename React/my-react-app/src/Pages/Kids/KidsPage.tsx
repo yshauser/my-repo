@@ -197,7 +197,11 @@ export const KidsPage = () => {
                 {kid.favoriteMedicine && (
                   <p>תרופה מועדפת: {kid.favoriteMedicine}</p>
                 )}
-              </div>
+                  <p className={KidManager.checkLastUpdatedStatus(kid.age, kid.lastUpdated).color}>
+                    עודכן לאחרונה: {kid.lastUpdated}
+                  </p>
+
+                </div>
               <div className="flex space-x-2 mt-2">
                 <button
                   onClick={() => editKid(kid)}

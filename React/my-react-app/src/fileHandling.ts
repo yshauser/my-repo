@@ -11,6 +11,7 @@ interface FileSystemWritableFileStream {
 
 interface SaveFilePickerOptions {
   suggestedName?: string;
+  // startIn?: string;
   types?: {
     description: string;
     accept: Record<string, string[]>;
@@ -19,6 +20,7 @@ interface SaveFilePickerOptions {
 
 interface OpenFilePickerOptions {
   multiple?: boolean;
+  // startIn?: string;
   types?: {
     description: string;
     accept: Record<string, string[]>;
@@ -35,6 +37,7 @@ declare global {
 interface FileHandlerOptions {
   suggestedName: string;
   description: string;
+  // startIn?: string;
 }
 export class FileHandler<T> {
   private options: FileHandlerOptions;
@@ -47,6 +50,7 @@ export class FileHandler<T> {
       try {
         const fileHandle = await window.showSaveFilePicker({
           suggestedName: this.options.suggestedName,
+          // startIn: this.options.startIn,
           types: [{
             description: this.options.description,
             accept: {'application/json': ['.json']},
@@ -80,6 +84,7 @@ export class FileHandler<T> {
       try {
         const [fileHandle] = await window.showOpenFilePicker({
           multiple: false,
+          // startIn: this.options.startIn,
           types: [{
             description: this.options.description,
             accept: {'application/json': ['.json']},

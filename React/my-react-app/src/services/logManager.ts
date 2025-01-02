@@ -5,7 +5,8 @@ import { FileHandler } from '../fileHandling';
 export class LogManager {
   private static fileHandler = new FileHandler<LogEntry>({
     suggestedName: 'medicineLog.json',
-    description: 'Medicine Log Data File'
+    description: 'Medicine Log Data File',
+    // startIn: 'documents'
   });
 
   static async loadLogs(): Promise<LogEntry[]> {

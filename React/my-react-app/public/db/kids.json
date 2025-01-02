@@ -4,27 +4,31 @@
 	  "name": "שי",
     "birthDate": "26/01/2007", 
     "weight": "58.5",
-    "favoriteMedicine": "איבופרופן 200"
+    "favoriteMedicine": "איבופרופן 200",
+    "lastUpdated": "01/01/2023"
   },
   {
     "id": "102",
 	  "name": "מתן",
     "birthDate": "26/01/2007", 
     "weight": "59",
-    "favoriteMedicine": "אקמול 500"
+    "favoriteMedicine": "אקמול 500",
+    "lastUpdated": "10/01/2024"
   },
   {
     "id": "103",
 	  "name": "אוריה",
     "birthDate": "06/04/2015", 
     "weight": "27",
-    "favoriteMedicine": "נורופן לילדים"
+    "favoriteMedicine": "נורופן לילדים",
+    "lastUpdated": ""
   },
   {
     "id": "104",
 	  "name": "בנימין",
     "birthDate": "30/08/2003", 
     "weight": "50",
-    "favoriteMedicine": ""
+    "favoriteMedicine": "",
+    "lastUpdated": "31/12/2024"
   }
 ]

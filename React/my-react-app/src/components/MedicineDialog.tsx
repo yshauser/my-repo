@@ -19,7 +19,7 @@ export const MedicineDialog: React.FC<MedicineDialogProps > = ({
     isOpen, onClose, kidName: initialKidName, kidWeight: initialKidWeight, kidAge: initialKidAge, kidFavoriteMedicine, logData, setLogData, isQuickAdd = false }) => {
 console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
 
-    const isFirstRender = React.useRef(true);       // Use a ref to track if this is the first render
+  const isFirstRender = React.useRef(true);       // Use a ref to track if this is the first render
   const [temperature, setTemperature] = useState('');
   const [selectedMedicine, setSelectedMedicine] = useState('');
   const [recommendedDosage, setRecommendedDosage] = useState('');
@@ -27,9 +27,11 @@ console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
   const [kidName, setKidName] = useState('');
   const [weight, setWeight] = useState('');
   const [age, setAge] = useState('');
+  const medicineGroups = MedicineManager.getMedicineGroups();
+
   console.log('MedicineDialog initiated', {isFirstRender, selectedMedicine, kidName, initialKidName, initialKidWeight, weight, age, initialKidAge});
 
-    useEffect(() => {
+  useEffect(() => {
     if (isOpen && isFirstRender.current) {
         console.log('Initializing dialog with:', { isFirstRender,initialKidName, initialKidWeight, initialKidAge, kidName, weight, age });
         setKidName(initialKidName || '');
@@ -226,7 +228,7 @@ console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
               onChange={(e) => setSelectedMedicine(e.target.value)}
             />
             <datalist id="medicines">
-              {MedicineManager.medicineGroups.map(group => (
+              {medicineGroups.map(group => (
                 group.data.map(medicine => (
                   <option key={medicine.id} value={group.name} />
                 ))

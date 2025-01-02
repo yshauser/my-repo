@@ -1,19 +1,112 @@
-import { Medicine, SuspensionMedicine, CapletMedicine, NurofenKids, 
-  NovimolTipTipot, Acamol500, Ibufen200, Ibufen400 } from '../medicinesData';
+import {SuspensionMedicine, CapletMedicine, Medicine} from '../types';
 
+interface DefaultUnits {
+  suspension: string;
+  caplets: string;
+  weight: string;
+  age: string;
+}
+
+interface Metadata {
+  defaultUnits: DefaultUnits;
+}
+
+interface Alias {
+  name: string;
+  hebName: string;
+  company: string;
+}
+
+// Active ingredient related interfaces
+interface DailyDose {
+  adult: string;
+  pediatric: string;
+}
+
+interface ActiveIngredient {
+  alternativeNames: string[];
+  category: string;
+  maxDailyDose: DailyDose;
+}
+
+// Main data structure interfaces
+interface MedicinesData {
+  suspension: SuspensionMedicine[];
+  caplets: CapletMedicine[];
+}
+
+interface MedicineDataFile {
+  version: string;
+  lastUpdated: string;
+  metadata: Metadata;
+  medicines: MedicinesData;
+  activeIngredients: Record<string, ActiveIngredient>;
+}
+
+// Medicine group for UI organization
 export interface MedicineGroup {
   name: string;
   data: Medicine[];
 }
 
 export class MedicineManager {
-  static medicineGroups: MedicineGroup[] = [
-    { name: 'נורופן לילדים', data: [NurofenKids] },
-    { name: 'נובימול טיפטיפות', data: [NovimolTipTipot] },
-    { name: 'אקמול 500', data: [Acamol500] },
-    { name: 'איבופרופן 200', data: [Ibufen200] },
-    { name: 'איבופרופן 400', data: [Ibufen400] },
-  ];
+  private static medicineGroups: MedicineGroup[] = [];
+  private static activeIngredients: Record<string, ActiveIngredient> = {};
+  private static metadata: Metadata | null = null;
+
+  static async initialize(): Promise<void> {
+    try {
+      const response = await fetch('../../public/db/medicines.json');
+      const data: MedicineDataFile = await response.json();
+      console.log ('MedicineManager', {data});
+
+      // Store metadata and active ingredients
+      this.metadata = data.metadata;
+      this.activeIngredients = data.activeIngredients;
+
+      // Initialize medicine groups
+      this.medicineGroups = [
+        ...data.medicines.suspension.map(med => ({
+          name: med.hebName,
+          data: [med]
+        })),
+        ...data.medicines.caplets.map(med => ({
+          name: med.hebName,
+          data: [med]
+        }))
+      ];
+    } catch (error) {
+      console.error('Failed to load medicines data:', error);
+      throw error;
+    }
+  }
+
+  static getMedicineGroups(): MedicineGroup[] {
+    return this.medicineGroups;
+  }
+
+  static getActiveIngredients(): Record<string, ActiveIngredient> {
+    return this.activeIngredients;
+  }
+
+  static getMetadata(): Metadata | null {
+    return this.metadata;
+  }
+
+  static findMedicineByName(name: string): Medicine | undefined {
+    for (const group of this.medicineGroups) {
+      if (group.name === name && group.data.length > 0) {
+        return group.data[0];
+      }
+    }
+    return undefined;
+  }
+
+  static findMedicinesByActiveIngredient(ingredient: string): Medicine[] {
+    return this.medicineGroups
+      .flatMap(group => group.data)
+      .filter(medicine => medicine.activeIngredient === ingredient);
+  }
 
   static calculateDosage(medicineName: string, kidWeight: number | undefined, kidAge: number | undefined): string {
     const medicineGroup = this.medicineGroups.find(group => group.name === medicineName);
