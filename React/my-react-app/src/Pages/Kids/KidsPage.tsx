@@ -10,60 +10,36 @@ export const KidsPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editKidId, setEditKidId] = useState<string | null>(null);
 
-
-  // Read kids from txt file and set initial state
-  // const loadKids = async () => {
-  //   try {
-  //     const response = await fetch('/db/kids.txt');
-  //     if (!response.ok) throw new Error('Failed to load kids file');
-  //     const text = await response.text();
-  //     const kidBlocks = text.split('// Kid #').filter(block => block.trim());
-  //     const parsedKids = kidBlocks.map(block => {
-  //       const lines = block.split('\n').filter(line => line.trim());
-  //       const kidData: { [key: string]: string } = {};
-  //       lines.forEach(line => {
-  //         const [key, value] = line.split(':').map(part => part.trim());
-  //         if (key && value) {
-  //           kidData[key.replace(' ', '')] = value;
-  //         }
-  //       });
-  //       return {
-  //         id: kidData['KidID'],
-  //         name: kidData['Name'],
-  //         birthDate: kidData['BirthDate'],
-  //         weight: parseInt(kidData['Weight']),
-  //         favoriteMedicine: kidData['FavoriteMedicine'],
-  //         age: calculateAge(kidData['BirthDate'])
-  //       };
-  //     });
-  //     setKids(parsedKids);
-  //   } catch (error) {
-  //     console.error('Error loading kids:', error);
-  //   }
-  // };
-
   const saveKid = async () => {
+    const lastUpdated = new Date();
+    const formattedDate = `${lastUpdated.getDate().toString().padStart(2, '0')}/${
+      (lastUpdated.getMonth() + 1).toString().padStart(2, '0')
+    }/${lastUpdated.getFullYear()}`;
 
     const { age, ...kidDataWithoutAge } = {
       ...newKid,
       id: editKidId || Date.now().toString(),
+      lastUpdated: formattedDate,
     };
   
     console.log('save kid', { kidDataWithoutAge });
     try {
-      await fetch('/api/saveKids', {
+      await fetch('/api/saveToJsonFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: 'kids',
           data: kidDataWithoutAge,
+          type: 'kids',
         })
       });
+
 
      // Calculate the age locally and update the state
      const updatedKidData = {
       ...kidDataWithoutAge,
       age: calculateAge(newKid.birthDate || ''),
+      lastUpdated: formattedDate,
     };
 
     if (isEditMode) {

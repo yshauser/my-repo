@@ -11,8 +11,7 @@
   },
   "medicines": {
     "suspension": [
-      {
-        "id": 2001,
+      { "id": 2001,
         "name": "Ibuprofen Suspension 20mg/1ml",
         "type": "suspension",
         "activeIngredient": "Ibuprofen",
@@ -36,8 +35,7 @@
           }
         ]
       },
-      {
-        "id": 2002,
+      { "id": 2002,
         "name": "Novimol Tiptipot Suspension 100mg/1ml",
         "type": "suspension",
         "activeIngredient": "Paracetamol",
@@ -61,8 +59,7 @@
       }
     ],
     "caplets": [
-      {
-        "id": 1001,
+      { "id": 1001,
         "name": "Acamol 500mg",
         "type": "caplets",
         "activeIngredient": "Paracetamol",
@@ -95,8 +92,7 @@
           }
         ]
       },
-      {
-        "id": 1101,
+      { "id": 1101,
         "name": "Ibuprofen 200mg",
         "type": "caplets",
         "activeIngredient": "Ibuprofen",
@@ -125,8 +121,7 @@
           }
         ]
       },
-      {
-        "id": 1102,
+      { "id": 1102,
         "name": "Ibuprofen 400mg",
         "type": "caplets",
         "activeIngredient": "Ibuprofen",

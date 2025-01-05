@@ -31,7 +31,8 @@ export const HomePage: React.FC<HomePageProps> = ({ logData, setLogData }) => {
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-4 bg-white">
-      <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-xs sm:max-w-md">
+      {/* <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-xs sm:max-w-md"> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-4xl mb-8">
         {kids.map(kid => (
           <button
             key={kid.id}

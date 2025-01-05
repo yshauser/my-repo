@@ -74,17 +74,19 @@ const AddMedicineForm = () => {
     e.preventDefault();
     console.log ('handle submit', {formData});
     try {
-      const response = await fetch('../public/db/medicines.json', {
+      // const response = 
+      await fetch('/api/saveToJsonFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          data: formData,
+          filename: 'medicines',
           type: medicineType
         })
       });
-      console.log ('handle submit response ', {response});
+      // console.log ('handle submit response ', {response});
             
-      if (!response.ok) throw new Error('Failed to add medicine');
+      // if (!response.ok) throw new Error('Failed to add medicine');
       
       setSubmitStatus({ success: true, error: '' });
       setFormData({

@@ -11,5 +11,5 @@
       "noEmit": true,
       "forceConsistentCasingInFileNames": true
     },
-    "include": ["src", "src/custom.d.ts", "my-next-app/pages/api/medicinesFilesMgr.ts"]
+    "include": ["src", "src/custom.d.ts"]
   }

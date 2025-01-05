@@ -1,5 +1,5 @@
 // src/components/Navigation.tsx
-import { Home, Calendar, Pill, Users } from 'lucide-react';
+import { Home, CalendarCheck2, Pill, Users, ScrollText } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export const Navigation = () => {
@@ -8,7 +8,8 @@ export const Navigation = () => {
 
   const navItems = [
     { icon: Home, label: 'בית', path: '/' },
-    { icon: Calendar, label: 'יומן', path: '/log' },
+    { icon: ScrollText, label: 'תיעוד', path: '/log' },
+    { icon: CalendarCheck2, label: 'תקופתי', path: '/scheduled' },
     { icon: Pill, label: 'תרופות', path: '/medicines' },
     { icon: Users, label: 'ילדים', path: '/kids' }
   ];

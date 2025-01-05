@@ -8,6 +8,7 @@ import { LogPage } from '../Pages/Log/LogPage';
 import { MedicinesPage } from '../Pages/Medicines/MedicinesPage';
 import { KidsPage } from '../Pages/Kids/KidsPage';
 import { LogEntry } from '../types';
+import ScheduledPage from '../Pages/Scheduled/ScheduledPage';
 
 export const MainLayout = () => {
   const [logData, setLogData] = useState<LogEntry[]>([]);
@@ -19,6 +20,7 @@ export const MainLayout = () => {
         <Routes>
           <Route path="/" element={<HomePage logData={logData} setLogData={setLogData} />} />
           <Route path="/log" element={<LogPage logData={logData} setLogData={setLogData} />} />
+          <Route path="/scheduled" element={<ScheduledPage />} />
           <Route path="/medicines" element={<MedicinesPage />} />
           <Route path="/kids" element={<KidsPage />} />
         </Routes>

@@ -56,7 +56,7 @@ export class MedicineManager {
 
   static async initialize(): Promise<void> {
     try {
-      const response = await fetch('../../public/db/medicines.json');
+      const response = await fetch('/db/medicines.json');
       const data: MedicineDataFile = await response.json();
       console.log ('MedicineManager', {data});
 

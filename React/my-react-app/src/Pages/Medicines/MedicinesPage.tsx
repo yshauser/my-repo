@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SuspensionMedicine, CapletMedicine } from '../../types';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
-import AddMedicineForm from '../../components/AddMedicineForm';
+import AddMedicineForm from './AddMedicineForm';
 
 export const MedicinesPage = () => {
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
