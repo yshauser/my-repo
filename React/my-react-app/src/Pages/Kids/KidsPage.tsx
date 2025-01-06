@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Kid } from '../../types.ts';
 import { calculateAge, KidManager } from '../../services/kidManager.ts';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 
 export const KidsPage = () => {
@@ -67,12 +68,46 @@ export const KidsPage = () => {
 
   const deleteKid = async (id: string) => {
     try {
-      await fetch(`/api/deleteKid/${id}`, {
-        method: 'DELETE'
+      console.log ('in delete before set', {kids})
+      const updatedKidData = kids.filter(kid => kid.id !== id);
+
+      await fetch(`/api/saveToJsonFile/`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: 'kids',
+          data: updatedKidData,
+          type: 'kids',
+        })
       });
       setKids(kids.filter(kid => kid.id !== id));
     } catch (error) {
       console.error('Error deleting kid:', error);
+    }
+  };
+
+  const onDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const reorderedKids = Array.from(kids);
+    const [movedKid] = reorderedKids.splice(result.source.index, 1);
+    reorderedKids.splice(result.destination.index, 0, movedKid);
+
+    setKids(reorderedKids);
+
+    try {
+      await fetch ('/api/saveToJsonFile',{
+        method: 'POST',
+        headers: { 'content-Type':'application/json'},
+        body: JSON.stringify({
+          filename: 'kids',
+          data: reorderedKids,
+          type: 'kids-order',
+        }),
+      });
+      console.log ('Order saved successfully');
+    } catch (error) {
+      console.error('Error saving kids order:', error);
     }
   };
 
@@ -82,7 +117,6 @@ export const KidsPage = () => {
       console.log ('Page-kids use effect loaded kids', {loadedKids});
       setKids(loadedKids);
     };
-  
     fetchKids().catch(error => console.error('Error in useEffect fetchKids:', error));
   }, []);
   
@@ -153,10 +187,20 @@ export const KidsPage = () => {
       )}
 
       <div className="w-full max-w-2xl">
-        <div className="space-y-4">
-          {kids.map(kid => (
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="kidsList">
+            {(provided) => (
+        <div  {...provided.droppableProps} 
+              ref={provided.innerRef}
+            className="space-y-4"
+        >
+          {kids.map((kid, index) => (
+            <Draggable key={kid.id} draggableId={kid.id} index={index}>
+              {(provided) => (
             <div 
-              key={kid.id}
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
               className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-center">
@@ -176,7 +220,6 @@ export const KidsPage = () => {
                   <p className={KidManager.checkLastUpdatedStatus(kid.age, kid.lastUpdated).color}>
                     עודכן לאחרונה: {kid.lastUpdated}
                   </p>
-
                 </div>
               <div className="flex space-x-2 mt-2">
                 <button
@@ -193,8 +236,14 @@ export const KidsPage = () => {
                 </button>
               </div>
             </div>
+          )}
+          </Draggable>
           ))}
+          {provided.placeholder}
         </div>
+            )}
+        </Droppable>
+      </DragDropContext>
       </div>
     </main>
   );

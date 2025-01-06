@@ -29,6 +29,10 @@ interface ActiveIngredient {
   maxDailyDose: DailyDose;
 }
 
+interface TargetAudiance {
+  audiance: string;
+}
+
 // Main data structure interfaces
 interface MedicinesData {
   suspension: SuspensionMedicine[];
@@ -41,6 +45,7 @@ interface MedicineDataFile {
   metadata: Metadata;
   medicines: MedicinesData;
   activeIngredients: Record<string, ActiveIngredient>;
+  targetAudiance: Record<string, TargetAudiance>;
 }
 
 // Medicine group for UI organization
@@ -52,6 +57,7 @@ export interface MedicineGroup {
 export class MedicineManager {
   private static medicineGroups: MedicineGroup[] = [];
   private static activeIngredients: Record<string, ActiveIngredient> = {};
+  private static targetAudiance: Record<string, TargetAudiance> = {};
   private static metadata: Metadata | null = null;
 
   static async initialize(): Promise<void> {
@@ -63,6 +69,7 @@ export class MedicineManager {
       // Store metadata and active ingredients
       this.metadata = data.metadata;
       this.activeIngredients = data.activeIngredients;
+      this.targetAudiance = data.targetAudiance;
 
       // Initialize medicine groups
       this.medicineGroups = [
@@ -89,6 +96,10 @@ export class MedicineManager {
     return this.activeIngredients;
   }
 
+  static getTargetAudiance(): Record<string, TargetAudiance> {
+    return this.targetAudiance;
+  }
+
   static getMetadata(): Metadata | null {
     return this.metadata;
   }
@@ -106,6 +117,16 @@ export class MedicineManager {
     return this.medicineGroups
       .flatMap(group => group.data)
       .filter(medicine => medicine.activeIngredient === ingredient);
+  }
+
+  static findMedicinesByTargetAudiance (audiance: string): Medicine[] {
+    return this.medicineGroups
+      .flatMap(group => group.data)
+      .filter(medicine => medicine.targetAudiance === audiance);
+  }
+
+  static findMedicinesByType(type: string): MedicineGroup[] {
+    return this.medicineGroups.filter(group => group.data[0].type === type);
   }
 
   static calculateDosage(medicineName: string, kidWeight: number | undefined, kidAge: number | undefined): string {

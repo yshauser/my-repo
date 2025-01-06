@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
-// import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Entry {
   w_low?: number;
@@ -22,27 +21,46 @@ const AddMedicineForm = () => {
   const [medicineType, setMedicineType] = useState('suspension');
   const [formData, setFormData] = useState<{
     id: string;
+    type: string;
     name: string;
     hebName: string;
     activeIngredient: string;
+    targetAudiance: string;
     concentration: string;
     strength: string;
     entries: Entry[];
   }>({
-    id: '',
+    id: generateId(),
+    type: 'suspension',
     name: '',
     hebName: '',
     activeIngredient: '',
+    targetAudiance: 'ילדים',
     concentration: '',
     strength: '',
     entries: [{} as Entry] // Initialize with an empty Entry object
   });
   const [submitStatus, setSubmitStatus] = useState({ success: false, error: '' });
 
-  const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Function to generate a unique ID
+  function generateId() {
+    // return 'med_' + Math.random().toString(36).substr(2, 9);
+    return 'med_' + Date.now().toString();
+  }
+  
+  const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleMedicineTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value;
+    setMedicineType(newType);
+    setFormData(prev => ({
+      ...prev,
+      type: newType
     }));
   };
 
@@ -74,7 +92,6 @@ const AddMedicineForm = () => {
     e.preventDefault();
     console.log ('handle submit', {formData});
     try {
-      // const response = 
       await fetch('/api/saveToJsonFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -84,16 +101,16 @@ const AddMedicineForm = () => {
           type: medicineType
         })
       });
-      // console.log ('handle submit response ', {response});
-            
-      // if (!response.ok) throw new Error('Failed to add medicine');
       
       setSubmitStatus({ success: true, error: '' });
+      // Reset form with new ID
       setFormData({
-        id: '',
+        id: generateId(),
+        type: medicineType,
         name: '',
         hebName: '',
         activeIngredient: '',
+        targetAudiance: '',
         concentration: '',
         strength: '',
         entries: [{}]
@@ -136,14 +153,25 @@ const AddMedicineForm = () => {
         <div className="space-y-4">
           <select
             value={medicineType}
-            onChange={(e) => setMedicineType(e.target.value)}
+            onChange={handleMedicineTypeChange}
             className="w-full p-2 border rounded"
           >
             <option value="suspension">תרחיף</option>
             <option value="caplets">קפליות</option>
           </select>
 
-          <input
+          <select
+            name="targetAudiance"
+            value={formData.targetAudiance}
+            onChange={handleBasicInfoChange}
+            className="w-full p-2 border rounded"
+            required
+            >
+              <option value="ילדים">ילדים</option>
+              <option value="מבוגרים">מבוגרים</option>
+          </select>
+
+          {/* <input
             type="text"
             name="id"
             placeholder="מזהה (ID)"
@@ -151,7 +179,7 @@ const AddMedicineForm = () => {
             onChange={handleBasicInfoChange}
             className="w-full p-2 border rounded"
             required
-          />
+          /> */}
 
           <input
             type="text"

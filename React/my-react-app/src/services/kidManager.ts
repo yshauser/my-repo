@@ -1,5 +1,4 @@
 import { Kid } from '../types.ts';
-
 interface KidData {
   [key: string]: string | number | undefined;
 }

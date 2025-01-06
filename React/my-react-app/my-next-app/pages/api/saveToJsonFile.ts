@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const fileContent = await fs.readFile(DATA_FILE_PATH, 'utf8');
       existingData = JSON.parse(fileContent);
-      console.log ('Existing Data', {existingData});
+      // console.log ('Existing Data', {existingData});
     } catch (readError) {
       if ((readError as NodeJS.ErrnoException).code !== 'ENOENT') {
         console.error('Error reading file:', readError);
@@ -49,13 +49,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       console.log ('save tasks POST');
       if (type === 'suspension') {
-        console.log ('med data', data.medicine.suspension);
-        data.medicines.suspension.push(req.body);
-        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
+        console.log ('med data suspension');
+
+        // Ensure `medicines` and `suspension` are initialized
+        if (!existingData.medicines){
+          existingData.medicines = {suspension:[], caplets: []};
+        }else if (!Array.isArray(existingData.medicines.suspension)){
+          existingData.medicines.suspension = [];
+        }
+        existingData.medicines.suspension.push(data);
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });
       } else if (type === 'caplets') {
-        console.log ('med data', data.medicine.caplets);
-        data.medicines.caplets.push(req.body);
+        console.log ('med data caplets');
+        if (!existingData.medicines){
+          existingData.medicines = {suspension:[], caplets: []};
+        }else if (!Array.isArray(existingData.medicines.caplets)){
+          existingData.medicines.caplets = [];
+        }
+        existingData.medicines.caplets.push(data);
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
+        res.status(200).json({ success: true });
       }else{
         console.log ('type not suspension nor caplets', {data});
         const updatedEntry = req.body.data;
@@ -64,8 +78,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Overwrite the existing entry
           existingData[existingIndex] = updatedEntry;
         } else {
-          // Add as a new entry
-          existingData.push(updatedEntry);
+          if (type === 'kids-order'){
+            // empty the existing data so the kids-list will replace the exisiting data
+            existingData = [];
+          }
+            // Add as a new entry
+            existingData.push(updatedEntry);
         }
         // existingData.push(data);
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
@@ -76,6 +94,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Error saving data:', error);
       res.status(500).json({ error: 'Failed to save data' });
     }
+  } else if (req.method === 'DELETE') {
+      // assume that the entry is removed in the app, so the data is already updated
+      console.log ('DELETE action updated data: ', data);
+      await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
+      res.status(200).json({ success: true });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).json({ error: `Method ${req.method} not allowed` });

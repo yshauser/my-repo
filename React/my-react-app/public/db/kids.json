@@ -1,19 +1,29 @@
 [
   {
+    "id": "104",
+    "name": "בנימין",
+    "birthDate": "30/08/2003",
+    "weight": "50",
+    "favoriteMedicine": "",
+    "lastUpdated": "31/12/2024",
+    "age": 21.5
+  },
+  {
     "id": "101",
     "name": "שי",
     "birthDate": "26/01/2007",
     "weight": "58.5",
     "favoriteMedicine": "איבופרופן 200",
-    "lastUpdated": "01/01/2023"
+    "lastUpdated": "01/01/2023",
+    "age": 17
   },
   {
-    "id": "102",
     "name": "מתן",
-    "birthDate": "26/01/2007",
-    "weight": 60,
+    "birthDate": "26/01/07",
+    "weight": 61,
     "favoriteMedicine": "קל בטן",
-    "lastUpdated": "05/01/2025"
+    "id": "1736181519753",
+    "lastUpdated": "06/01/2025"
   },
   {
     "id": "103",
@@ -21,21 +31,15 @@
     "birthDate": "06/04/2015",
     "weight": 15,
     "favoriteMedicine": "נורופן לילדים",
-    "lastUpdated": "05/01/2025"
-  },
-  {
-    "id": "104",
-    "name": "בנימין",
-    "birthDate": "30/08/2003",
-    "weight": "50",
-    "favoriteMedicine": "",
-    "lastUpdated": "31/12/2024"
+    "lastUpdated": "05/01/2025",
+    "age": 10
   },
   {
     "name": "שירי",
     "birthDate": "27/07/1980",
     "id": "1736101358761",
     "lastUpdated": "05/01/2025",
-    "weight": 72
+    "weight": 72,
+    "age": 44.5
   }
 ]

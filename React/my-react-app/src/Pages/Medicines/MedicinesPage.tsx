@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
-import { SuspensionMedicine, CapletMedicine } from '../../types';
+import { SuspensionMedicine, CapletMedicine, MedicineType } from '../../types';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
 import AddMedicineForm from './AddMedicineForm';
 
 export const MedicinesPage = () => {
+  const [selectedType, setSelectedType] = useState<MedicineType | null>(null);
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const medicineGroups = MedicineManager.getMedicineGroups();
+
+  // const getMedicinesByType = (type: MedicineType) => {
+  //   return medicineGroups.filter(group => group.data[0].type === type);
+  // };
+
+  const handleBackClick = () => {
+    if (selectedMedicine) {
+      setSelectedMedicine(null);
+    } else if (selectedType) {
+      setSelectedType(null);
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col p-4 bg-white overflow-auto">
       <h1 className="text-2xl text-emerald-600 mb-6 text-center">תרופות</h1>
@@ -25,10 +39,42 @@ export const MedicinesPage = () => {
       {/* Add Medicine Form */}
       {showAddForm && <AddMedicineForm />}
 
-      {/* Medicine List */}
-      {!selectedMedicine && (
+      {/* Back Button */}
+      {(selectedType || selectedMedicine) && (
+        <button
+          onClick={handleBackClick}
+          className="mb-4 text-emerald-600 hover:text-emerald-700 flex items-center gap-2"
+        >
+          <span>←</span> חזור {selectedMedicine ? 'לרשימה' : 'לסוגי תרופות'}
+        </button>
+      )}
+
+      {/* Medicine Types Selection */}
+      {!selectedType && !selectedMedicine && (
         <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-          {medicineGroups.map((medicineGroup) => (
+          <h2 className="text-xl text-emerald-600 mb-2 text-center">בחר סוג תרופה</h2>
+          {Object.values(MedicineType).map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(type)}
+              className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
+            >
+              {type === MedicineType.Suspension ? 'תרחיפים' : 
+               type === MedicineType.Caplets ? 'קפליות' : type}
+            </button>
+          ))}
+        </div>
+      )}
+
+
+      {/* Medicine List By Type */}
+      {selectedType && !selectedMedicine && (
+        <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
+          <h2 className="text-xl text-emerald-600 mb-2 text-center">
+            {selectedType === MedicineType.Suspension ? 'תרחיפים' : 
+             selectedType === MedicineType.Caplets ? 'קפליות' : selectedType}
+          </h2>
+          {MedicineManager.findMedicinesByType(selectedType).map((medicineGroup) => (
             <button
               key={medicineGroup.name}
               onClick={() => setSelectedMedicine(medicineGroup)}
@@ -43,12 +89,12 @@ export const MedicinesPage = () => {
       {/* Medicine Details Table */}
       {selectedMedicine && (
         <div className="w-full">
-          <button
+          {/* <button
             onClick={() => setSelectedMedicine(null)}
             className="mb-4 text-emerald-600 hover:text-emerald-700 flex items-center gap-2"
           >
             <span>←</span> חזור לרשימה
-          </button>
+          </button> */}
 
           <h2 className="text-xl text-emerald-600 mb-4">{selectedMedicine.name}</h2>
           

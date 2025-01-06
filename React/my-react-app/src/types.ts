@@ -1,4 +1,3 @@
-// Existing types
 export interface LogEntry {
   id: string;
   logDate: string;
@@ -23,8 +22,8 @@ export interface Kid {
 export enum MedicineType {
   Suspension = "suspension",
   Caplets = "caplets",
-  Granules = "granules",
-  Suppository = "suppository"
+  // Granules = "granules",
+  // Suppository = "suppository"
 }
 
 // Basic medicine interfaces
@@ -32,6 +31,7 @@ export interface MedicineBase {
   id: number;
   name: string;
   type: MedicineType;
+  targetAudiance: string;
   activeIngredient: string;
   hebName: string;
   aliases?: {
