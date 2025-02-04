@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
-
-type ScheduledTask = {
-  id: number;
-  taskLabel: string;
-  medicineName: string;
-  dose: string;
-  startDate: string;
-  daysToTake: number;
-  timesPerDay: number;
-};
-
+import { TaskManager } from '../../services/TaskManager';
+import { TaskEntry } from '../../types';
+import AddScheduledTaskForm from './AddScheduledTaskForm';
 
 const ScheduledPage = () => {
-  const [tasks, setTasks] = useState<ScheduledTask[]>([]);
+  const [tasks, setTasks] = useState<TaskEntry[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
+    taskUser: '',
     taskLabel: '',
-    medicineName: '',
-    dose: '',
-    startDate: '',
-    daysToTake: 0,
-    timesPerDay: 0
+    taskStartDate: '',
+    taskEndDate: '',
+    taskDays: 0,
+    timesPerDay: 0,
+    timeInDay: '', 
+    dose: 0,
+    doseUnits: '',
+    medicine: '',
+    withFood: '',
+    comment: ''
   });
 
   useEffect(() => {
@@ -34,26 +32,22 @@ const ScheduledPage = () => {
     }
   };
 
-  const saveTasksToStorage = (updatedTasks: ScheduledTask[]) => {
-    localStorage.setItem('scheduledTasks', JSON.stringify(updatedTasks));
+  const saveTasksToStorage = (updatedTasks: TaskEntry[]) => {
+    localStorage.setItem('TaskEntry', JSON.stringify(updatedTasks));
   };
 
-  const saveTasksToFile = async (updatedTasks: ScheduledTask[]) => {
-    // try {
-    //   await fs.writeFile(DATA_FILE_PATH, JSON.stringify(updatedTasks, null, 2));
-    // } 
-    console.log ('Schedule page - save Task', {updatedTasks});
+  const saveTasksToFile = async (updatedTasks: TaskEntry[]) => {
     try {
-        await fetch('/api/saveToJsonFile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: 'tasks',
-            data: updatedTasks,
-            type: 'scheduled', 
-          })
-        });
-    }catch (error) {
+      await fetch('/api/saveToJsonFile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: 'tasks',
+          data: updatedTasks,
+          type: 'scheduled', 
+        })
+      });
+    } catch (error) {
       console.error('Error saving tasks to file:', error);
     }
   };  
@@ -78,25 +72,29 @@ const ScheduledPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newTask: ScheduledTask = {
-      id: Date.now(),
+    const newTask: TaskEntry = {
+      id: Date.now().toString(),
       ...formData,
-      startDate: formData.startDate // Store original date value
+      taskStartDate: formData.taskStartDate
     };
-    // setTasks(prev => [...prev, newTask]);
     const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
     saveTasksToStorage(updatedTasks);
-    console.log('scheduledTasks', {updatedTasks});
     await saveTasksToFile(updatedTasks);
     setIsDialogOpen(false);
     setFormData({
+      taskUser: '',
       taskLabel: '',
-      medicineName: '',
-      dose: '',
-      startDate: '',
-      daysToTake: 0,
-      timesPerDay: 0
+      taskStartDate: '',
+      taskEndDate: '',
+      taskDays: 0,
+      timesPerDay: 0,
+      timeInDay: '', 
+      dose: 0,
+      doseUnits: '',
+      medicine: '',
+      withFood: '',
+      comment: ''
     });
   };
 
@@ -112,126 +110,15 @@ const ScheduledPage = () => {
         </button>
       </div>
 
-      {/* Modal/Dialog */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">הוספת תרופה תקופתית חדשה</h2>
-              <button
-                onClick={() => setIsDialogOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="taskLabel" className="block text-sm font-medium text-gray-700 mb-1">
-                    תווית משימה
-                  </label>
-                  <input
-                    id="taskLabel"
-                    name="taskLabel"
-                    type="text"
-                    value={formData.taskLabel}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="medicineName" className="block text-sm font-medium text-gray-700 mb-1">
-                    שם התרופה
-                  </label>
-                  <input
-                    id="medicineName"
-                    name="medicineName"
-                    type="text"
-                    value={formData.medicineName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="dose" className="block text-sm font-medium text-gray-700 mb-1">
-                    מינון
-                  </label>
-                  <input
-                    id="dose"
-                    name="dose"
-                    type="text"
-                    value={formData.dose}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    תאריך התחלה
-                  </label>
-                  <input
-                    id="startDate"
-                    name="startDate"
-                    type="date"
-                    placeholder="dd/mm/yy"
-                    value={formData.startDate}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="daysToTake" className="block text-sm font-medium text-gray-700 mb-1">
-                    מספר ימים לנטילה
-                  </label>
-                  <input
-                    id="daysToTake"
-                    name="daysToTake"
-                    type="number"
-                    value={formData.daysToTake}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="timesPerDay" className="block text-sm font-medium text-gray-700 mb-1">
-                    מספר פעמים ביום
-                  </label>
-                  <input
-                    id="timesPerDay"
-                    name="timesPerDay"
-                    type="number"
-                    value={formData.timesPerDay}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-              >
-                שמור
-              </button>
-            </form>
-          </div>
-        </div>
+        <AddScheduledTaskForm
+          formData={formData}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onClose={() => setIsDialogOpen(false)}
+        />
       )}
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
@@ -260,10 +147,10 @@ const ScheduledPage = () => {
             {tasks.map((task) => (
               <tr key={task.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.taskLabel}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.medicineName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.medicine}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.dose}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(task.startDate)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.daysToTake}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(task.taskStartDate)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.taskDays}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.timesPerDay}</td>
               </tr>
             ))}

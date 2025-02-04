@@ -18,12 +18,36 @@ export interface Kid {
   lastUpdated: string;
 }
 
+export interface TaskEntry {
+  id: string;
+  taskUser: string;
+  taskLabel: string;
+  taskStartDate: string;
+  taskEndDate?: string;
+  taskDays: number;
+  timesPerDay: number;
+  timeInDay: string; // can be time, can be breakfast/lunch/supper, can be morning, noon, evening,...
+  dose: number;
+  doseUnits?: string;
+  medicine: string;
+  withFood?:string;  // yes,no,irrelevant
+  comment?:string;
+}
+
+////////////////////////////
+//// Medicines   ///////////
+////////////////////////////
 // Core medicine-related types
 export enum MedicineType {
   Suspension = "suspension",
   Caplets = "caplets",
   // Granules = "granules",
   // Suppository = "suppository"
+}
+
+export enum TargetAudiance {
+  Kids = "kids",
+  Adults = "adults",
 }
 
 // Basic medicine interfaces

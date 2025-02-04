@@ -80,3 +80,25 @@ export const calculateAge = (birthDate: string): number => {
   }
   return roundedAge;
 };
+
+export const updateDateYearTo4digits = (date: string):string =>{
+  if (!date) {throw new Error ("Invalid date format");}
+
+  const [day, month, year] = date.split("/"); // Assume date format is DD/MM/YY or DD/MM/YYYY
+  if (!day || !month || !year) {throw new Error("Invalid date format");}
+
+  const currentYear = new Date().getFullYear(); // Get the current year as a 4-digit number
+  const currentYearLast2Digits = currentYear % 100; // Get the last 2 digits of the current year
+
+  let updatedYear: string;
+
+  if (year.length === 4) {
+    updatedYear = year; // If year already has 4 digits, return it as is
+  } else if (year.length === 2) {
+    const yearNumber = parseInt(year, 10); // Convert the year string to a number
+    updatedYear = yearNumber > currentYearLast2Digits ? `19${year}` : `20${year}`;
+  } else {
+    throw new Error('Invalid year format'); // Handle invalid input (not 2 or 4 digits)
+  }
+  return `${day}/${month}/${updatedYear}`;
+}

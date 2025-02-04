@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Kid } from '../../types.ts';
-import { calculateAge, KidManager } from '../../services/kidManager.ts';
+import { calculateAge, KidManager, updateDateYearTo4digits } from '../../services/kidManager.ts';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useAuth } from '../../Users/AuthContext';
 
 
 export const KidsPage = () => {
+  const {user} = useAuth(); // Get the logged-in user
   const [kids, setKids] = useState<Kid[]>([]);
   const [newKid, setNewKid] = useState<Partial<Kid>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,13 +19,17 @@ export const KidsPage = () => {
       (lastUpdated.getMonth() + 1).toString().padStart(2, '0')
     }/${lastUpdated.getFullYear()}`;
 
+    const sanitizedBirthDate = newKid.birthDate 
+    ? newKid.birthDate.replace(/\./g, "/") // Replace dots with slashes
+    : "";
+
     const { age, ...kidDataWithoutAge } = {
       ...newKid,
       id: editKidId || Date.now().toString(),
+      birthDate: sanitizedBirthDate ? updateDateYearTo4digits(sanitizedBirthDate) : "", // Handle undefined case
       lastUpdated: formattedDate,
     };
   
-    console.log('save kid', { kidDataWithoutAge });
     try {
       await fetch('/api/saveToJsonFile', {
         method: 'POST',
@@ -92,9 +98,8 @@ export const KidsPage = () => {
     const reorderedKids = Array.from(kids);
     const [movedKid] = reorderedKids.splice(result.source.index, 1);
     reorderedKids.splice(result.destination.index, 0, movedKid);
-
-    setKids(reorderedKids);
-
+    console.log ('onDragEnd reorderedKids', {reorderedKids});
+    
     try {
       await fetch ('/api/saveToJsonFile',{
         method: 'POST',
@@ -105,6 +110,7 @@ export const KidsPage = () => {
           type: 'kids-order',
         }),
       });
+      setKids(reorderedKids);
       console.log ('Order saved successfully');
     } catch (error) {
       console.error('Error saving kids order:', error);
@@ -124,14 +130,14 @@ export const KidsPage = () => {
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-4 bg-white">
       <h1 className="text-2xl text-emerald-600 mb-6">ילדים</h1>
-      
+      {user?.role === 'admin' || user?.role === 'owner' ? (    
       <button
         onClick={() => setIsModalOpen(true)}
         className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 mb-4"
       >
         הוסף ילד
       </button>
-
+      ) : null }
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -189,56 +195,63 @@ export const KidsPage = () => {
       <div className="w-full max-w-2xl">
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="kidsList">
-            {(provided) => (
-        <div  {...provided.droppableProps} 
+          {(provided) => (
+            <div  {...provided.droppableProps} 
               ref={provided.innerRef}
-            className="space-y-4"
-        >
-          {kids.map((kid, index) => (
-            <Draggable key={kid.id} draggableId={kid.id} index={index}>
-              {(provided) => (
-            <div 
-              ref={provided.innerRef}
-              {...provided.draggableProps}
-              {...provided.dragHandleProps}
-              className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="space-y-4"
             >
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">{kid.name}</h3>
-                <span className="text-gray-600">גיל: {kid.age}</span>
-              </div>
-              <div className="text-gray-500 text-sm space-y-1">
-                {kid.birthDate && (
-                  <p>תאריך לידה: {new Date(kid.birthDate.split('/').reverse().join('-')).toLocaleDateString('he-IL')}</p>
-                )}
-                {kid.weight && (
-                  <p>משקל: {kid.weight} ק"ג</p>
-                )}
-                {kid.favoriteMedicine && (
-                  <p>תרופה מועדפת: {kid.favoriteMedicine}</p>
-                )}
-                  <p className={KidManager.checkLastUpdatedStatus(kid.age, kid.lastUpdated).color}>
-                    עודכן לאחרונה: {kid.lastUpdated}
-                  </p>
-                </div>
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={() => editKid(kid)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  ערוך
-                </button>
-                <button
-                  onClick={() => deleteKid(kid.id)}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  מחק
-                </button>
-              </div>
-            </div>
-          )}
-          </Draggable>
-          ))}
+            {kids && kids.length > 0 ? (
+              kids.map((kid: Kid, index: number) => (
+                <Draggable 
+                  key={kid.id || `kid-${index}`}
+                  draggableId={kid.id ? kid.id.toString(): `kid-${index}`} 
+                  index={index}>
+                  {(providedDraggable) => (
+                    <div 
+                      ref={providedDraggable.innerRef}
+                      {...providedDraggable.draggableProps}
+                      {...providedDraggable.dragHandleProps}
+                      className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-medium">{kid.name}</h3>
+                        <span className="text-gray-600">גיל: {kid.age}</span>
+                      </div>
+                      <div className="text-gray-500 text-sm space-y-1">
+                        {kid.birthDate && (
+                          <p>תאריך לידה: {new Date(kid.birthDate.split('/').reverse().join('-')).toLocaleDateString('he-IL')}</p>
+                        )}
+                        {kid.weight && (
+                          <p>משקל: {kid.weight} ק"ג</p>
+                        )}
+                        {kid.favoriteMedicine && (
+                          <p>תרופה מועדפת: {kid.favoriteMedicine}</p>
+                        )}
+                          <p className={KidManager.checkLastUpdatedStatus(kid.age, kid.lastUpdated).color}>
+                            עודכן לאחרונה: {kid.lastUpdated}
+                          </p>
+                        </div>
+                    {user?.role === 'admin' || user?.role === 'owner' ? (    
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          onClick={() => editKid(kid)}
+                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          ערוך
+                        </button>
+                        <button
+                          onClick={() => deleteKid(kid.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          מחק
+                        </button>
+                      </div>
+                    ): null}
+                    </div>
+                  )}
+               </Draggable>
+             ))
+            ):(<p>אין ילדים להצגה</p>)}
           {provided.placeholder}
         </div>
             )}

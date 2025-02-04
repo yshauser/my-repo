@@ -33,9 +33,9 @@ export const HomePage: React.FC<HomePageProps> = ({ logData, setLogData }) => {
     <main className="flex-1 flex flex-col items-center justify-center p-4 bg-white">
       {/* <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-xs sm:max-w-md"> */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-4xl mb-8">
-        {kids.map(kid => (
+        {kids.map((kid,index) => (
           <button
-            key={kid.id}
+            key={kid.id || index}
             onClick={() => handleKidClick(kid)}
             className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-center flex-1"
           >

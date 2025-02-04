@@ -60,35 +60,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         existingData.medicines.suspension.push(data);
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
         res.status(200).json({ success: true });
-      } else if (type === 'caplets') {
-        console.log ('med data caplets');
-        if (!existingData.medicines){
-          existingData.medicines = {suspension:[], caplets: []};
-        }else if (!Array.isArray(existingData.medicines.caplets)){
-          existingData.medicines.caplets = [];
-        }
-        existingData.medicines.caplets.push(data);
-        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
-        res.status(200).json({ success: true });
-      }else{
-        console.log ('type not suspension nor caplets', {data});
-        const updatedEntry = req.body.data;
-        const existingIndex = existingData.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
-        if (existingIndex !== -1) {
-          // Overwrite the existing entry
-          existingData[existingIndex] = updatedEntry;
-        } else {
-          if (type === 'kids-order'){
-            // empty the existing data so the kids-list will replace the exisiting data
-            existingData = [];
+
+        } else if (type === 'caplets') {
+            console.log ('med data caplets');
+            if (!existingData.medicines){
+              existingData.medicines = {suspension:[], caplets: []};
+            }else if (!Array.isArray(existingData.medicines.caplets)){
+              existingData.medicines.caplets = [];
+            }
+            existingData.medicines.caplets.push(data);
+            await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+            res.status(200).json({ success: true });
+         
+        } else  {
+            console.log ('type not suspension nor caplets', {data});
+            const updatedEntry = req.body.data;
+            const existingIndex = existingData.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
+            if (existingIndex !== -1) {
+              // Overwrite the existing entry
+              existingData[existingIndex] = updatedEntry;
+            } else {
+              if (type === 'kids-order'){
+                // empty the existing data so the kids-list will replace the exisiting data
+                // existingData = [];
+                existingData = updatedEntry;
+              }else{
+                // Add as a new entry
+                existingData.push(updatedEntry);
+              }
+            }
+            // existingData.push(data);
+            await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+            res.status(200).json({ success: true });
           }
-            // Add as a new entry
-            existingData.push(updatedEntry);
-        }
-        // existingData.push(data);
-        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
-        res.status(200).json({ success: true });
-      }
       
     } catch (error) {
       console.error('Error saving data:', error);

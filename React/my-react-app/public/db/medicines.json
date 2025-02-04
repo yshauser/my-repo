@@ -261,7 +261,7 @@
         "id": 1001,
         "name": "Acamol 500mg",
         "type": "caplets",
-        "targetAudiance": "מבוגרים",
+        "targetAudiance": "כולם",
         "activeIngredient": "Paracetamol",
         "strength": "500mg",
         "hebName": "אקמול 500",
@@ -351,6 +351,26 @@
             "name": "Nurofen Forte",
             "hebName": "נורופן פורטה",
             "company": "Reckitt Benckiser"
+          }
+        ]
+      },
+      {
+        "id": "med_1736197872382",
+        "type": "caplets",
+        "name": "Kalbeten Forte",
+        "hebName": "קלבטן פורטה",
+        "activeIngredient": "bismuth subsalicylate",
+        "targetAudiance": "מבוגרים",
+        "concentration": "",
+        "strength": "524mg",
+        "entries": [
+          {
+            "age_low": 12,
+            "dos_low": 1,
+            "dos_high": 1,
+            "maxDay": 8,
+            "hoursInterval_low": 0.5,
+            "hoursInterval_high": 1
           }
         ]
       }

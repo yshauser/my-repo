@@ -119,13 +119,16 @@ export class MedicineManager {
       .filter(medicine => medicine.activeIngredient === ingredient);
   }
 
-  static findMedicinesByTargetAudiance (audiance: string): Medicine[] {
-    return this.medicineGroups
-      .flatMap(group => group.data)
-      .filter(medicine => medicine.targetAudiance === audiance);
+  static findMedicinesByTargetAudiance (audiance: string): MedicineGroup[] {
+    console.log ('in targetAudiance', {audiance});
+    if (audiance === 'kids') {audiance = 'ילדים'} else if (audiance === 'adults'){audiance = 'מבוגרים'}
+    const requested = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudiance === audiance));
+    const both = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudiance === 'כולם'));
+    return [...requested, ...both];
   }
 
   static findMedicinesByType(type: string): MedicineGroup[] {
+    console.log ('in find by type', {type});
     return this.medicineGroups.filter(group => group.data[0].type === type);
   }
 

@@ -8,7 +8,7 @@ MedicineManager.initialize().then(() => {
 
   const container = document.getElementById('root');
   if (container) {
-    console.log ('Yossi main');
+    console.log ('In main');
     const root = createRoot(container);
     root.render(
       <React.StrictMode>

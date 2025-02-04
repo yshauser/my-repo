@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck2, Pill, Users, ScrollText } from 'lucide-react';
+import { Home, CalendarCheck2, Pill, Users, ScrollText, Settings } from 'lucide-react';
+import { useAuth } from '../Users/AuthContext';
+import LoginDialog from './LoginDialog';
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const { user } = useAuth();
+
   const menuItems = [
     { icon: Home, label: 'בית', path: '/' },
     { icon: ScrollText, label: 'תיעוד', path: '/log' },
     { icon: CalendarCheck2, label: 'תקופתי', path: '/scheduled' },
     { icon: Pill, label: 'תרופות', path: '/medicines' },
-    { icon: Users, label: 'ילדים', path: '/kids' }
+    { icon: Users, label: 'ילדים', path: '/kids' },
+    { icon: Settings, label: 'הגדרות', path: '/settings' }
   ];
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    setIsOpen(false);
+  const handleLogout = () => {
+    // logout();
+    console.log ('*** handle logout', {user})
+    setShowLoginModal(true);
   };
 
   return (
@@ -34,19 +40,13 @@ export const Header = () => {
         
         {isOpen && (
           <>
-            {/* Overlay to close menu when clicking outside */}
-            <div 
-              className="fixed inset-0 z-10"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Dropdown menu */}
+            <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
             <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
               <div className="py-1">
                 {menuItems.map(({ icon: Icon, label, path }) => (
                   <button
                     key={path}
-                    onClick={() => handleNavigation(path)}
+                    onClick={() => navigate(path)}
                     className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                       location.pathname === path
                         ? 'text-emerald-700 bg-emerald-50'
@@ -57,15 +57,26 @@ export const Header = () => {
                     <span>{label}</span>
                   </button>
                 ))}
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <Users size={16} />
+                  <span>החלף משתמש</span>
+                </button>
               </div>
             </div>
           </>
         )}
       </div>
       <div className="text-emerald-600 text-xl font-medium absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-       תרופותי
+        תרופותי
       </div>
-      <div className="text-emerald-600">שם משתמש</div>
+      <div className="text-emerald-600">{user?.username || 'אורח'}</div>
+
+      {/* Show Login Modal when logged out */}
+      {showLoginModal && <LoginDialog onClose={() => setShowLoginModal(false)} />}
     </header>
   );
 };

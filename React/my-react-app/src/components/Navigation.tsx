@@ -19,7 +19,7 @@ export const Navigation = () => {
       <nav className="flex justify-between items-center p-4 max-w-md mx-auto">
         {navItems.map(({ icon: Icon, label, path }) => (
           <button 
-            key={label}
+            key={path}
             onClick={() => navigate(path)}
             className={`flex flex-col items-center gap-1 transition-colors ${
               location.pathname === path 
