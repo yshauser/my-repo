@@ -79,8 +79,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (existingIndex !== -1) {
               // Overwrite the existing entry
               existingData[existingIndex] = updatedEntry;
+              console.log ('index', existingIndex, updatedEntry)
             } else {
-              if (type === 'kids-order'){
+              if (type === 'kids-order'|| type === 'scheduled'){
                 // empty the existing data so the kids-list will replace the exisiting data
                 // existingData = [];
                 existingData = updatedEntry;

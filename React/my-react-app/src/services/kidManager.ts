@@ -38,17 +38,18 @@ export class KidManager {
       return { color: 'text-red-500', isOutdated: true };
     }
 
-    const lastUpdateDate = new Date(lastUpdated);
+    // Convert from dd/mm/yyyy to yyyy-mm-dd for correct Date parsing
+    const [day, month, year] = lastUpdated.split('/');
+    const lastUpdateDate = new Date(`${year}-${month}-${day}`); // yyyy-mm-dd format
     const today = new Date();
     const monthsSinceUpdate = (today.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
       (today.getMonth() - lastUpdateDate.getMonth());
 
-     const isOutdated = age > 3 
-      ? monthsSinceUpdate >= 12  // One year for kids over 3
-      : age > 1 
-        ? monthsSinceUpdate >= 6  // Half year for kids between 1 and 3
-        : monthsSinceUpdate >= 1;  // every month for kids under 1
-
+     const isOutdated = 
+      age > 3 ? monthsSinceUpdate >= 12 : // One year for kids over 3
+      age > 1 ? monthsSinceUpdate >= 6 : // Half year for kids between 1 and 3
+                monthsSinceUpdate >= 1;  // every month for kids under 1
+    // console.log ('LastUpdated Status', {isOutdated, age, monthsSinceUpdate, lastUpdated, lastUpdateDate});
     return {
       color: isOutdated ? 'text-red-500' : 'text-gray-500',
       isOutdated
