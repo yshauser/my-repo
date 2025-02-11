@@ -17,7 +17,7 @@ interface MedicineDialogProps {
 
 export const MedicineDialog: React.FC<MedicineDialogProps > = ({
     isOpen, onClose, kidName: initialKidName, kidWeight: initialKidWeight, kidAge: initialKidAge, kidFavoriteMedicine, logData, setLogData, isQuickAdd = false }) => {
-console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
+// console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
 
   const isFirstRender = React.useRef(true);       // Use a ref to track if this is the first render
   const [temperature, setTemperature] = useState('');
@@ -29,11 +29,11 @@ console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
   const [age, setAge] = useState('');
   const medicineGroups = MedicineManager.getMedicineGroups();
 
-  console.log('MedicineDialog initiated', {isFirstRender, selectedMedicine, kidName, initialKidName, initialKidWeight, weight, age, initialKidAge});
+  // console.log('MedicineDialog initiated', {isFirstRender, selectedMedicine, kidName, initialKidName, initialKidWeight, weight, age, initialKidAge});
 
   useEffect(() => {
     if (isOpen && isFirstRender.current) {
-        console.log('Initializing dialog with:', { isFirstRender,initialKidName, initialKidWeight, initialKidAge, kidName, weight, age });
+        // console.log('Initializing dialog with:', { isFirstRender,initialKidName, initialKidWeight, initialKidAge, kidName, weight, age });
         setKidName(initialKidName || '');
         setWeight(initialKidWeight?.toString() || '');
         setAge(initialKidAge?.toString() || '');
@@ -57,7 +57,7 @@ console.log('initials', { initialKidName, initialKidWeight, initialKidAge});
     if (selectedMedicine && weight) {
       const weightNum = parseFloat(weight);
       const ageNum = age ? parseFloat(age) : undefined;
-      console.log('MedicineDialog use effect', {selectedMedicine, weight, weightNum, age, ageNum});
+      // console.log('MedicineDialog use effect', {selectedMedicine, weight, weightNum, age, ageNum});
       const recommended = MedicineManager.calculateDosage(selectedMedicine, weightNum, ageNum);
       setRecommendedDosage(recommended);
       

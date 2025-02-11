@@ -23,7 +23,15 @@ export const AddKidForm: React.FC<AddKidFormProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl mb-4">{isEditMode ? 'ערוך ילד' : 'הוסף ילד חדש'}</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl">{isEditMode ? 'ערוך ילד' : 'הוסף ילד חדש'}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+        </div>
         <div className="space-y-4">
           <input
             className="w-full p-2 border rounded"

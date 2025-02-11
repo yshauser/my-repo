@@ -18,6 +18,10 @@ export interface Kid {
   lastUpdated: string;
 }
 
+export interface DailyTakes {
+  date: string;
+  takes: boolean[];  // Array of booleans representing each take
+}
 export interface TaskEntry {
   id: string;
   taskUser: string;
@@ -32,7 +36,13 @@ export interface TaskEntry {
   medicine: string;
   withFood?:string;  // yes,no,irrelevant
   comment?:string;
+  takesHistory?:DailyTakes[];
 }
+
+
+
+export type TreatmentType = 'סבב טיפול' | 'תרופה קבועה';
+export type Frequency = 'יומי' | 'שבועי';
 
 ////////////////////////////
 //// Medicines   ///////////
