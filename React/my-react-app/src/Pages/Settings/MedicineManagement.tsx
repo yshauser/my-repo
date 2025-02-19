@@ -1,14 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Edit2, Plus, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
 import AddMedicineForm from '../../Pages/Medicines/AddMedicineForm';
-import { Medicine, MedicineType, TargetAudience, SuspensionMedicine, CapletMedicine } from '../../types';
+import { Medicine, MedicineType, TargetAudience, SuspensionMedicine, CapletMedicine, GranulesMedicine } from '../../types';
 
 type SortField = 'name' | 'activeIngredient' | 'type' | 'targetAudience';
 type SortDirection = 'asc' | 'desc';
 
 export const MedicineManagement = () => {
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  // const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medicineGroups, setMedicineGroups] = useState<MedicineGroup[]>([]);
   const [expandedMedicine, setExpandedMedicine] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState<Medicine | null>(null);
@@ -23,33 +24,64 @@ export const MedicineManagement = () => {
     direction: SortDirection;
   }>({ field: 'name', direction: 'asc' });
 
-  const medicineGroups = MedicineManager.getMedicineGroups();
-
-  const handleSave = (medicine: Medicine) => {
-    if (editingMedicine) {
-      setMedicines(prev => prev.map(med => (med.id === medicine.id ? medicine : med)));
-    } else {
-      setMedicines(prev => [...prev, { ...medicine, id: Date.now().toString() }]);
-    }
-    setEditingMedicine(null);
-    setIsModalOpen(false);
+  // Function to sort medicine groups
+  const sortMedicineGroups = (groups: MedicineGroup[]) => {
+    return [...groups].sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  const handleEdit = (medicine: Medicine) => {
+  const fetchMedicines = async () => {
+    try{
+    const groups = MedicineManager.getMedicineGroups();
+    const sortedGroups = sortMedicineGroups(groups);     // Sort the groups by name before setting the state
+    setMedicineGroups(sortedGroups);
+    }catch (error){
+      console.error('Error fetching medicines:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMedicines();
+  }, []);
+
+  const handleSave = async (medicine: Medicine) => {
+    try {
+      console.log ('handle save', {medicine});
+      await fetch('/api/saveToJsonFile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: medicine,
+          filename: 'medicines',
+          type: medicine.type
+        })
+      });
+    
+    setEditingMedicine(null);
+    setIsModalOpen(false);
+    await fetchMedicines();
+    } catch (error) {
+      console.error ('Error saving medicine:', error);
+    }
+  };
+
+  const handleEdit = async (medicine: Medicine) => {
     console.log('Edit medicine:', medicine);
     setEditingMedicine(medicine);
     setIsModalOpen(true);
+    // await fetchMedicines();
   };
   
   const handleDelete = async (id: string, type: string) => {
-    const medicines = MedicineManager.findMedicinesGroupsByType (type);  
     try{
-    // Remove the medicine with the given id from each group's data array
-    const updatedMedicineGroups = medicines
-    .flatMap(group => group.data) // Extract all medicines into a flat array
-    .filter(med => med.id !== id); // Remove the medicine with the matching ID
-    setMedicines(prev => prev.filter(med => med.id !== id));
-    console.log('updated medicine:', {id, type, medicines, updatedMedicineGroups});
+      // Remove the medicine with the given id from each group's data array
+      const medicines = MedicineManager.findMedicinesGroupsByType(type);
+      const updatedMedicineGroups = medicines
+      .flatMap(group => group.data) // Extract all medicines into a flat array
+      .filter(med => med.id !== id); // Remove the medicine with the matching ID
+      
+      console.log('updated medicine:', {id, type, medicines, updatedMedicineGroups});
       await fetch (`/api/saveToJsonFile/`,{
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -59,18 +91,38 @@ export const MedicineManagement = () => {
           type: type,
         })
       });
-    }catch (error){
+      
+      // Close expanded view if the deleted medicine was expanded
+      const deletedMedicine = medicineGroups.find(group => 
+        group.data.some(med => med.id === id)
+      );
+      if (deletedMedicine && expandedMedicine === deletedMedicine.name) {
+        setExpandedMedicine(null);
+      }
+
+      // Refresh the medicines list after deletion
+      await fetchMedicines();
+    } catch (error){
       console.error('Error deleting Medicine', error);
     }
   };
 
-
   const getMedicineTypeDisplay = (type: MedicineType) => {
-    return type === MedicineType.Suspension ? 'תרחיף' : 'קפליות';
+    switch (type) {
+      case MedicineType.Suspension: return 'תרחיף';
+      case MedicineType.Caplets: return 'קפליות';
+      case MedicineType.Granules: return 'גרנולות';
+      default: return type;
+    }
   };
 
   const getTargetAudienceDisplay = (audience: TargetAudience) => {
-    return audience === TargetAudience.Kids ? 'ילדים' : 'מבוגרים';
+    switch (audience) {
+      case TargetAudience.Kids: return 'ילדים';
+      case TargetAudience.Adults: return 'מבוגרים';
+      case TargetAudience.All: return 'כולם';
+      default: return audience;
+    }
   };
 
   const handleSort = (field: SortField) => {
@@ -242,7 +294,7 @@ export const MedicineManagement = () => {
                     {expandedMedicine === medicine.name && (
                       <tr>
                         <td colSpan={4} className="p-4 bg-gray-50">
-                          <div className="flex justify-end gap-2 mb-4">
+                          <div className="flex justify-start gap-2 mb-4">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -276,7 +328,7 @@ export const MedicineManagement = () => {
                                   <th className="border p-2 text-right">מינון (מ״ל)</th>
                                   <th className="border p-2 text-right">פעמים ביום</th>
                                 </>
-                              ) : (
+                              ) : medicine.data[0].type === "caplets" ? (
                                 <>
                                   <th className="border p-2 text-right">גיל מינימום (שנים)</th>
                                   <th className="border p-2 text-right">גיל מקסימום (שנים)</th>
@@ -284,11 +336,19 @@ export const MedicineManagement = () => {
                                   <th className="border p-2 text-right">שעות בין מינונים</th>
                                   <th className="border p-2 text-right">מקסימום ליום</th>
                                 </>
-                              )}
+                              ) : medicine.data[0].type === "granules" ? (
+                                <>
+                                  <th className="border p-2 text-right">גיל מינימום (שנים)</th>
+                                  <th className="border p-2 text-right">גיל מקסימום (שנים)</th>
+                                  <th className="border p-2 text-right">מינון (קפליות)</th>
+                                  <th className="border p-2 text-right">שעות בין מינונים</th>
+                                  <th className="border p-2 text-right">מקסימום ליום</th>
+                                </>
+                              ): null}
                             </tr>
                           </thead>
                           <tbody>
-                            {medicine.data[0].entries.map((item: SuspensionMedicine["entries"][0] | CapletMedicine["entries"][0], index: number) => (
+                            {medicine.data[0].entries.map((item: SuspensionMedicine["entries"][0] | CapletMedicine["entries"][0] | GranulesMedicine["entries"][0], index: number) => (
                               <tr key={index} className="hover:bg-gray-100">
                                 {medicine.data[0].type === "suspension" ? (
                                   <>
@@ -301,7 +361,7 @@ export const MedicineManagement = () => {
                                         : `${(item as SuspensionMedicine["entries"][0]).perDay_high} - ${(item as SuspensionMedicine["entries"][0]).perDay_low}`}
                                     </td>
                                   </>
-                                ) : (
+                                ) : medicine.data[0].type === "caplets" ? (
                                   <>
                                     <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_low}</td>
                                     <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_high ? ((item as CapletMedicine["entries"][0]).age_high):('∞')}</td>
@@ -315,7 +375,21 @@ export const MedicineManagement = () => {
                                     </td>
                                     <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).maxDay}</td>
                                   </>
-                                )}
+                                ) : medicine.data[0].type === "granules" ? (
+                                  <>
+                                    <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).age_low}</td>
+                                    <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).age_high ? ((item as GranulesMedicine["entries"][0]).age_high):('∞')}</td>
+                                    <td className="border p-2 text-right">
+                                      {(item as GranulesMedicine["entries"][0]).dos_high === (item as GranulesMedicine["entries"][0]).dos_low
+                                        ? (item as GranulesMedicine["entries"][0]).dos_low
+                                        : `${(item as GranulesMedicine["entries"][0]).dos_high} - ${(item as GranulesMedicine["entries"][0]).dos_low}`}
+                                    </td>
+                                    <td className="border p-2 text-right">
+                                      {`${(item as GranulesMedicine["entries"][0]).hoursInterval_high} - ${(item as GranulesMedicine["entries"][0]).hoursInterval_low}`}
+                                    </td>
+                                    <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).maxDay}</td>
+                                  </>
+                                ): null}
                               </tr>
                             ))}
                           </tbody>

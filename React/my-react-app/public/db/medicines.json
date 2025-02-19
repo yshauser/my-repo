@@ -379,7 +379,7 @@
         "type": "caplets",
         "name": "OPTALGIN",
         "hebName": "אופטלגין",
-        "activeIngredient": "DIPYRONE",
+        "activeIngredient": "Dipyrone",
         "targetAudience": "מבוגרים",
         "strength": "500 mg",
         "entries": [
@@ -389,6 +389,56 @@
             "dos_high": 2,
             "hoursInterval_low": 6,
             "hoursInterval_high": 8,
+            "maxDay": 8
+          }
+        ]
+      }
+    ],
+    "granules": [
+      {
+        "id": "med_1739986876969",
+        "type": "granules",
+        "name": "Avcamol 250",
+        "hebName": "אבקמול 250",
+        "activeIngredient": "Paracetamol",
+        "targetAudience": "ילדים",
+        "strength": "250 mg",
+        "entries": [
+          {
+            "age_low": 9,
+            "age_high": 12,
+            "dos_low": 1,
+            "dos_high": 2,
+            "hoursInterval_low": 4,
+            "hoursInterval_high": 6,
+            "maxDay": 8
+          }
+        ]
+      },
+      {
+        "id": "med_1739988615537",
+        "type": "granules",
+        "name": "Avcamol 500",
+        "hebName": "אבקמול 500",
+        "activeIngredient": "Paracetamol",
+        "targetAudience": "kids",
+        "strength": "500 mg",
+        "entries": [
+          {
+            "age_low": 9,
+            "age_high": 12,
+            "dos_low": 1,
+            "dos_high": 1,
+            "hoursInterval_low": 4,
+            "hoursInterval_high": 6,
+            "maxDay": 4
+          },
+          {
+            "age_low": 12,
+            "dos_low": 1,
+            "dos_high": 2,
+            "hoursInterval_low": 4,
+            "hoursInterval_high": 6,
             "maxDay": 8
           }
         ]

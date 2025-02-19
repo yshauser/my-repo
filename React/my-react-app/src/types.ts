@@ -51,13 +51,14 @@ export type Frequency = 'יומי' | 'שבועי';
 export enum MedicineType {
   Suspension = "suspension",
   Caplets = "caplets",
-  // Granules = "granules",
+  Granules = "granules",
   // Suppository = "suppository"
 }
 
 export enum TargetAudience {
   Kids = "kids",
   Adults = "adults",
+  All = "all",
 }
 
 // Basic medicine interfaces
@@ -95,6 +96,16 @@ export interface CapletEntry {
   maxDay: number;
 }
 
+export interface GranulesEntry {
+  age_low: number;
+  age_high?: number;
+  dos_low: number;
+  dos_high: number;
+  hoursInterval_low: number;
+  hoursInterval_high: number;
+  maxDay: number;
+}
+
 export interface SuspensionMedicine extends MedicineBase {
   type: MedicineType.Suspension;
   concentration: string;
@@ -107,4 +118,10 @@ export interface CapletMedicine extends MedicineBase {
   entries: CapletEntry[];
 }
 
-export type Medicine = SuspensionMedicine | CapletMedicine;
+export interface GranulesMedicine extends MedicineBase {
+  type: MedicineType.Granules;
+  strength: string;
+  entries: GranulesEntry[];
+}
+
+export type Medicine = SuspensionMedicine | CapletMedicine | GranulesMedicine;

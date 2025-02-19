@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
+import { group } from 'console';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log ('in save tasks');
@@ -48,51 +49,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log ('save tasks POST');
       if (type === 'suspension') {
         console.log ('med data suspension');
-
         // Ensure `medicines` and `suspension` are initialized
         if (!existingData.medicines){
-          existingData.medicines = {suspension:[], caplets: []};
+          existingData.medicines = {suspension:[], caplets: [], granules: []};
         }else if (!Array.isArray(existingData.medicines.suspension)){
           existingData.medicines.suspension = [];
         }
-        existingData.medicines.suspension.push(data);
+
+        const updatedEntry = req.body.data;
+        const existingIndex = existingData.medicines.suspension.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
+        if (existingIndex !== -1) {
+          // Overwrite the existing entry
+          console.log ('index suspension', {existingIndex, updatedEntry})
+          existingData.medicines.suspension[existingIndex] = updatedEntry;
+        } else {
+         existingData.medicines.suspension.push(data);
+        }
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
         res.status(200).json({ success: true });
 
-        } else if (type === 'caplets') {
-            console.log ('med data caplets');
-            if (!existingData.medicines){
-              existingData.medicines = {suspension:[], caplets: []};
-            }else if (!Array.isArray(existingData.medicines.caplets)){
-              existingData.medicines.caplets = [];
-            }
-            existingData.medicines.caplets.push(data);
-            await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
-            res.status(200).json({ success: true });
-         
-        } else  {
-            console.log ('type not suspension nor caplets', {data});
-            const updatedEntry = req.body.data;
-            const existingIndex = existingData.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
-            if (existingIndex !== -1) {
-              // Overwrite the existing entry
-              existingData[existingIndex] = updatedEntry;
-              console.log ('index', existingIndex, updatedEntry)
-            } else {
-              if (type === 'kids-order'|| type === 'scheduled'){
-                // empty the existing data so the kids-list will replace the exisiting data
-                // existingData = [];
-                existingData = updatedEntry;
-              }else{
-                // Add as a new entry
-                existingData.push(updatedEntry);
-              }
-            }
-            // existingData.push(data);
-            await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
-            res.status(200).json({ success: true });
+      } else if (type === 'caplets') {
+          console.log ('med data caplets');
+          if (!existingData.medicines){
+            existingData.medicines = {suspension:[], caplets: [], granules: []};
+          }else if (!Array.isArray(existingData.medicines.caplets)){
+            existingData.medicines.caplets = [];
           }
-      
+        const updatedEntry = req.body.data;
+        const existingIndex = existingData.medicines.caplets.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
+        if (existingIndex !== -1) {
+          // Overwrite the existing entry
+          console.log ('index caplets', {existingIndex, updatedEntry})
+          existingData.medicines.caplets[existingIndex] = updatedEntry;
+        } else {
+          existingData.medicines.caplets.push(data);
+        }
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });
+      } else if (type === 'granules') {
+        console.log ('med data granules');
+        if (!existingData.medicines){
+          existingData.medicines = {suspension:[], caplets: [], granules: []};
+        }else if (!Array.isArray(existingData.medicines.granules)){
+          existingData.medicines.granules = [];
+        }
+
+        const updatedEntry = req.body.data;
+        const existingIndex = existingData.medicines.granules.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
+        if (existingIndex !== -1) {
+          // Overwrite the existing entry
+          console.log ('index granules', {existingIndex, updatedEntry})
+          existingData.medicines.granules[existingIndex] = updatedEntry;
+        } else {
+          existingData.medicines.granules.push(data);
+        }
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });
+                  
+      } else  {
+        console.log ('type not suspension, caplets not granules', {data});
+        const updatedEntry = req.body.data;
+        const existingIndex = existingData.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
+        if (existingIndex !== -1) {
+          // Overwrite the existing entry
+          existingData[existingIndex] = updatedEntry;
+          console.log ('index', existingIndex, updatedEntry)
+        } else {
+          if (type === 'kids-order'|| type === 'scheduled'){
+            // empty the existing data so the kids-list will replace the exisiting data
+            // existingData = [];
+            existingData = updatedEntry;
+          }else{
+            // Add as a new entry
+            existingData.push(updatedEntry);
+          }
+        }
+        // existingData.push(data);
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });
+      }
+    
     } catch (error) {
       console.error('Error saving data:', error);
       res.status(500).json({ error: 'Failed to save data' });
@@ -103,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (type === 'suspension') {
         console.log('med data suspension');
         if (!existingData.medicines) {
-          existingData.medicines = { suspension: [], caplets: [] };
+          existingData.medicines = { suspension: [], caplets: [], granules:[] };
         }      
         if (!Array.isArray(existingData.medicines.suspension)) {
           existingData.medicines.suspension = [];
@@ -111,14 +147,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         existingData.medicines.suspension = data; // Assign directly instead of push
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
         res.status(200).json({ success: true });
+      
       } else if (type === 'caplets') {
         console.log('med data caplets');
         if (!existingData.medicines) {
-          existingData.medicines = { suspension: [], caplets: [] };
+          existingData.medicines = { suspension: [], caplets: [] ,  granules:[]};
         }
         existingData.medicines.caplets = data; // Fix: Assign directly
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
         res.status(200).json({ success: true });     
+
+      } else if (type === 'granules') {
+        console.log('med data granules');
+        if (!existingData.medicines) {
+          existingData.medicines = { suspension: [], caplets: [],  granules:[] };
+        }
+        existingData.medicines.granules = data; // Fix: Assign directly
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });     
+      
       } else {
         await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
         res.status(200).json({ success: true });

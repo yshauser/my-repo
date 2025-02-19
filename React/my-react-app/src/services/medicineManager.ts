@@ -1,8 +1,9 @@
-import {SuspensionMedicine, CapletMedicine, Medicine} from '../types';
+import {SuspensionMedicine, CapletMedicine, GranulesMedicine, Medicine} from '../types';
 
 interface DefaultUnits {
   suspension: string;
   caplets: string;
+  granules: string;
   weight: string;
   age: string;
 }
@@ -37,6 +38,7 @@ interface TargetAudience {
 interface MedicinesData {
   suspension: SuspensionMedicine[];
   caplets: CapletMedicine[];
+  granules: GranulesMedicine[];
 }
 
 interface MedicineDataFile {
@@ -78,6 +80,10 @@ export class MedicineManager {
           data: [med]
         })),
         ...data.medicines.caplets.map(med => ({
+          name: med.hebName,
+          data: [med]
+        })),
+        ...data.medicines.granules.map(med => ({
           name: med.hebName,
           data: [med]
         }))
@@ -123,21 +129,15 @@ export class MedicineManager {
     console.log ('in targetAudience', {audience});
     if (audience === 'kids') {audience = 'ילדים'} else if (audience === 'adults'){audience = 'מבוגרים'}
     const requested = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudience === audience));
-    const both = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudience === 'כולם'));
-    console.log ('after targetAudience', {requested,both});
-    return [...requested, ...both];
+    const all = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudience === 'כולם'));
+    console.log ('after targetAudience', {requested,all});
+    return [...requested, ...all];
   }
 
   static findMedicinesGroupsByType(type: string): MedicineGroup[] {
     console.log ('in find by type', {type});
     return this.medicineGroups.filter(group => group.data.some(med => med.type === type));
   }
-
-  // static findMedicinesByType(type: string): Medicine[] {
-  //   console.log ('in find by type', {type});
-  //   return this.medicineGroups[0].data.filter(group => group.type === type);
-  // }
-
 
   static calculateDosage(medicineName: string, kidWeight: number | undefined, kidAge: number | undefined): string {
     const medicineGroup = this.medicineGroups.find(group => group.name === medicineName);
@@ -165,8 +165,18 @@ export class MedicineManager {
           return `${entry.dos_low}-${entry.dos_high} קפליות`;
         }
         return 'תרופה לא תואמת גיל/משקל';
-      }
-    }
+      } else if (medicine.type === 'granules') {
+        const entry = medicine.entries.find(
+          e => (kidAge as number) >= e.age_low && (!e.age_high || (kidAge as number) <= e.age_high)
+        );
+        if (entry?.dos_low) {
+          if (!entry.dos_high || entry.dos_high === entry.dos_low) {
+            return `${entry.dos_low} אריזת גרנולות`;
+          }
+          return `${entry.dos_low}-${entry.dos_high} אריזות גרנולות`;
+        }
+        return 'תרופה לא תואמת גיל/משקל';
+      }    }
     return '';
   }
 
@@ -195,6 +205,16 @@ export class MedicineManager {
 
         if (key1 === "dos_low" && key2 === "dos_high") {
           return capletItem.entries.every(entry => entry[key1] === entry[key2]);
+        }
+
+        return true;
+      });
+    } else if (firstItem.type === "granules") {
+      return data.every(item => {
+        const granulesItem = item as GranulesMedicine;
+
+        if (key1 === "dos_low" && key2 === "dos_high") {
+          return granulesItem.entries.every(entry => entry[key1] === entry[key2]);
         }
 
         return true;

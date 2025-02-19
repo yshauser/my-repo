@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Menu, LogOut, ChevronLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck2, Pill, Users, ScrollText, Settings } from 'lucide-react';
+import { Home, CalendarCheck2, Pill, PillBottle, Users, UserCog, ScrollText, Settings } from 'lucide-react';
 import { useAuth } from '../Users/AuthContext';
 import LoginDialog from './LoginDialog';
 
 interface SubMenuItem {
+  icon?: React.FC<{ className?:string}>;
   label: string;
   path: string;
 }
@@ -33,8 +34,8 @@ export const Header = () => {
     { icon: Users, label: 'ילדים', path: '/kids' },
     { icon: Settings, label: 'הגדרות', 
       submenu: [
-        {label: 'ניהול תרופות', path: '/settings/medicines'},
-        {label: 'ניהול משתמשים', path: '/settings/users'}
+        {icon: PillBottle, label: 'ניהול תרופות', path: '/settings/medicines'},
+        {icon: UserCog, label: 'ניהול משתמשים', path: '/settings/users'}
       ]
     }
   ];
@@ -107,24 +108,22 @@ export const Header = () => {
                               onClick={() => handleMenuItemClick(subItem.path, false)}
                               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-gray-50"
                             >
-                              {subItem.label}
+                              {subItem.icon && <subItem.icon className="h-5 w-5"/>}
+                              <span>{subItem.label}</span>
                             </button>
                           ))}
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-gray-50"
+                            >
+                            <LogOut className="h-5 w-5" />
+                            <span>החלף משתמש</span>
+                          </button>
                         </div>
                       )}
                     </div>
                   ))}
-                </nav>
-              </div>
-
-              <div className="border-t border-gray-200 p-4">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-gray-50"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>החלף משתמש</span>
-                </button>
+              </nav>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {useNavigate} from 'react-router-dom';
-import { SuspensionMedicine, CapletMedicine, MedicineType, TargetAudience } from '../../types';
+import { SuspensionMedicine, CapletMedicine, GranulesMedicine, MedicineType, TargetAudience } from '../../types';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
 import { useAuth } from '../../Users/AuthContext';
 
@@ -11,7 +11,7 @@ export const MedicinesPage = () => {
   const {user} = useAuth(); // Get the logged-in user
   const [selectedType, setSelectedType] = useState<MedicineType |TargetAudience| null>(null);
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
+  // const [showAddForm, setShowAddForm] = useState(false);
   const [organizationMethod, setOrganizationMethod] = useState<OrganizationType>('type');
 
   const handleBackClick = () => {
@@ -20,6 +20,12 @@ export const MedicinesPage = () => {
     } else if (selectedType) {
       setSelectedType(null);
     }
+  };
+
+  const medicineLabels: Record<MedicineType, string> = {
+    [MedicineType.Suspension]: 'תרחיפים',
+    [MedicineType.Caplets]: 'קפליות',
+    [MedicineType.Granules]: 'גרנולות',
   };
 
   return (
@@ -78,19 +84,19 @@ export const MedicinesPage = () => {
                 onClick={() => setSelectedType(type)}
                 className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
               >
-                {type === MedicineType.Suspension ? 'תרחיפים' : 
-                 type === MedicineType.Caplets ? 'קפליות' : type}
+                {medicineLabels[type] || type}
               </button>
             ))
           ) : (
-            Object.values(TargetAudience).map((type) => (
+            Object.values(TargetAudience)
+            .filter((type) => type !== TargetAudience.All) // Exculde All 
+            .map((type) => (
               <button
                 key={type}
                 onClick={() => setSelectedType(type)}
                 className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
               >
-                {type === TargetAudience.Adults ? 'מבוגרים' : 
-                 type === TargetAudience.Kids ? 'ילדים' : type}
+                {type === TargetAudience.Adults ? 'מבוגרים' : 'ילדים' }
               </button>
             )))}
         </div>
@@ -102,6 +108,7 @@ export const MedicinesPage = () => {
           <h2 className="text-xl text-emerald-600 mb-2 text-center">
             {selectedType === MedicineType.Suspension ? 'תרחיפים' : 
              selectedType === MedicineType.Caplets ? 'קפליות' : 
+             selectedType === MedicineType.Granules ? 'גרנולות' : 
              selectedType === 'kids' ? 'תרופות לילדים' : 'תרופות למבוגרים'}
           </h2>
           {(organizationMethod === 'type' 
@@ -140,7 +147,7 @@ export const MedicinesPage = () => {
                       <th className="border p-2 text-right">מינון (מ״ל)</th>
                       <th className="border p-2 text-right">פעמים ביום</th>
                     </>
-                  ) : (
+                  ) : selectedMedicine.data[0].type === "caplets" ? (
                     <>
                       <th className="border p-2 text-right">גיל מינימום (שנים)</th>
                       <th className="border p-2 text-right">גיל מקסימום (שנים)</th>
@@ -148,11 +155,19 @@ export const MedicinesPage = () => {
                       <th className="border p-2 text-right">שעות בין מינונים</th>
                       <th className="border p-2 text-right">מקסימום ליום</th>
                     </>
-                  )}
+                  ) : selectedMedicine.data[0].type === "granules" ? (
+                    <>
+                      <th className="border p-2 text-right">גיל מינימום (שנים)</th>
+                      <th className="border p-2 text-right">גיל מקסימום (שנים)</th>
+                      <th className="border p-2 text-right">מינון (גרנולות)</th>
+                      <th className="border p-2 text-right">שעות בין מינונים</th>
+                      <th className="border p-2 text-right">מקסימום ביום</th>
+                    </>
+                  ) : null}            
                 </tr>
               </thead>
               <tbody>
-              {selectedMedicine?.data[0].entries.map((item: SuspensionMedicine["entries"][0] | CapletMedicine["entries"][0], index: number) => (
+              {selectedMedicine?.data[0].entries.map((item: SuspensionMedicine["entries"][0] | CapletMedicine["entries"][0] | GranulesMedicine["entries"][0] , index: number) => (
                   <tr key={index} className="hover:bg-gray-50">
                     {selectedMedicine.data[0].type === "suspension" ? (
                       (item as SuspensionMedicine["entries"][0]) && (
@@ -175,7 +190,7 @@ export const MedicinesPage = () => {
                           )}
                         </>
                       )
-                    ) : (
+                    ) : selectedMedicine.data[0].type === "caplets" ? (
                       <>
                         <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_low}</td>
                         <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_high ? ((item as CapletMedicine["entries"][0]).age_high):('∞')}</td>
@@ -191,7 +206,23 @@ export const MedicinesPage = () => {
                         </td>
                         <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).maxDay}</td>
                       </>
-                    )}
+                      ) : selectedMedicine.data[0].type === "granules" ? (
+                        <>
+                          <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).age_low}</td>
+                          <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).age_high ? ((item as GranulesMedicine["entries"][0]).age_high):('∞')}</td>
+                          {(item as GranulesMedicine["entries"][0]).dos_high === (item as GranulesMedicine["entries"][0]).dos_low ? (
+                            <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).dos_low}</td>
+                          ) : (
+                            <td className="border p-2 text-right">
+                              {(item as GranulesMedicine["entries"][0]).dos_high} - {(item as GranulesMedicine["entries"][0]).dos_low}
+                            </td>
+                          )}
+                          <td className="border p-2 text-right">
+                            {(item as GranulesMedicine["entries"][0]).hoursInterval_high} - {(item as GranulesMedicine["entries"][0]).hoursInterval_low}
+                          </td>
+                          <td className="border p-2 text-right">{(item as GranulesMedicine["entries"][0]).maxDay}</td>
+                        </>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
