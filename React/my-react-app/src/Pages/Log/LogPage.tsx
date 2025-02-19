@@ -142,11 +142,11 @@ const handleClearFile = async () => {
 };
 
   return (
-    <main className="flex-1 flex flex-col p-4 bg-white overflow-auto">
+    <main className="flex-1 flex flex-col p-5 bg-white overflow-auto">
       <h1 className="text-2xl text-emerald-600 mb-6 text-center">יומן</h1>
       
       {/* Filters */}
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 justify-center flex gap-4">
         <input
           type="text"
           placeholder="סנן לפי תאריך"

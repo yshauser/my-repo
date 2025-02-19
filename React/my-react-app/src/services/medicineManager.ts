@@ -29,8 +29,8 @@ interface ActiveIngredient {
   maxDailyDose: DailyDose;
 }
 
-interface TargetAudiance {
-  audiance: string;
+interface TargetAudience {
+  audience: string;
 }
 
 // Main data structure interfaces
@@ -45,7 +45,7 @@ interface MedicineDataFile {
   metadata: Metadata;
   medicines: MedicinesData;
   activeIngredients: Record<string, ActiveIngredient>;
-  targetAudiance: Record<string, TargetAudiance>;
+  targetAudience: Record<string, TargetAudience>;
 }
 
 // Medicine group for UI organization
@@ -57,7 +57,7 @@ export interface MedicineGroup {
 export class MedicineManager {
   private static medicineGroups: MedicineGroup[] = [];
   private static activeIngredients: Record<string, ActiveIngredient> = {};
-  private static targetAudiance: Record<string, TargetAudiance> = {};
+  private static targetAudience: Record<string, TargetAudience> = {};
   private static metadata: Metadata | null = null;
 
   static async initialize(): Promise<void> {
@@ -69,7 +69,7 @@ export class MedicineManager {
       // Store metadata and active ingredients
       this.metadata = data.metadata;
       this.activeIngredients = data.activeIngredients;
-      this.targetAudiance = data.targetAudiance;
+      this.targetAudience = data.targetAudience;
 
       // Initialize medicine groups
       this.medicineGroups = [
@@ -96,8 +96,8 @@ export class MedicineManager {
     return this.activeIngredients;
   }
 
-  static getTargetAudiance(): Record<string, TargetAudiance> {
-    return this.targetAudiance;
+  static getTargetAudience(): Record<string, TargetAudience> {
+    return this.targetAudience;
   }
 
   static getMetadata(): Metadata | null {
@@ -119,18 +119,25 @@ export class MedicineManager {
       .filter(medicine => medicine.activeIngredient === ingredient);
   }
 
-  static findMedicinesByTargetAudiance (audiance: string): MedicineGroup[] {
-    console.log ('in targetAudiance', {audiance});
-    if (audiance === 'kids') {audiance = 'ילדים'} else if (audiance === 'adults'){audiance = 'מבוגרים'}
-    const requested = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudiance === audiance));
-    const both = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudiance === 'כולם'));
+  static findMedicinesByTargetAudience (audience: string): MedicineGroup[] {
+    console.log ('in targetAudience', {audience});
+    if (audience === 'kids') {audience = 'ילדים'} else if (audience === 'adults'){audience = 'מבוגרים'}
+    const requested = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudience === audience));
+    const both = this.medicineGroups.filter(group => group.data.some(medicine => medicine.targetAudience === 'כולם'));
+    console.log ('after targetAudience', {requested,both});
     return [...requested, ...both];
   }
 
-  static findMedicinesByType(type: string): MedicineGroup[] {
+  static findMedicinesGroupsByType(type: string): MedicineGroup[] {
     console.log ('in find by type', {type});
-    return this.medicineGroups.filter(group => group.data[0].type === type);
+    return this.medicineGroups.filter(group => group.data.some(med => med.type === type));
   }
+
+  // static findMedicinesByType(type: string): Medicine[] {
+  //   console.log ('in find by type', {type});
+  //   return this.medicineGroups[0].data.filter(group => group.type === type);
+  // }
+
 
   static calculateDosage(medicineName: string, kidWeight: number | undefined, kidAge: number | undefined): string {
     const medicineGroup = this.medicineGroups.find(group => group.name === medicineName);

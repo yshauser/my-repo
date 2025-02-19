@@ -9,7 +9,8 @@
       "skipLibCheck": true,
       "allowImportingTsExtensions": true,
       "noEmit": true,
-      "forceConsistentCasingInFileNames": true
+      "forceConsistentCasingInFileNames": true,
+      "resolveJsonModule": true
     },
     "include": ["src", "src/custom.d.ts"]
   }

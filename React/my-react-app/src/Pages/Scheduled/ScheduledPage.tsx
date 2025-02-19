@@ -199,8 +199,9 @@ const ScheduledPage = () => {
   };
   
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="flex-1 flex flex-col p-4 bg-white overflow-auto">
+
+      <div className="flex justify-between items-center mb-6 ">
         <h1 className="text-2xl font-bold">משימות מתוזמנות</h1>
         <button
           onClick={() => setIsFormOpen(true)}

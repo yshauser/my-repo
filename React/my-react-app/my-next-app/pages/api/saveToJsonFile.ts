@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!data || typeof data !== 'object') {
     return res.status(400).json({ error: 'Invalid or missing data' });
   }
-
+  
   const DATA_FILE_PATH = path.join(process.cwd(), '..','public','db', `${filename}.json`);
   console.log ('Processing request: ', {filename, type, data});
 
@@ -38,8 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'GET') {
     try {
-      // const data = await fs.readFile(DATA_FILE_PATH, 'utf8');
-      // res.status(200).json(JSON.parse(data));
       res.status(200).json(existingData);
     } catch (error) {
       console.error('Error reading existing data:', error);
@@ -102,10 +100,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'DELETE') {
       // assume that the entry is removed in the app, so the data is already updated
       console.log ('DELETE action updated data: ', data);
-      await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
-      res.status(200).json({ success: true });
-  } else {
-    res.setHeader('Allow', ['GET', 'POST']);
-    res.status(405).json({ error: `Method ${req.method} not allowed` });
-  }
+      if (type === 'suspension') {
+        console.log('med data suspension');
+        if (!existingData.medicines) {
+          existingData.medicines = { suspension: [], caplets: [] };
+        }      
+        if (!Array.isArray(existingData.medicines.suspension)) {
+          existingData.medicines.suspension = [];
+        }
+        existingData.medicines.suspension = data; // Assign directly instead of push
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });
+      } else if (type === 'caplets') {
+        console.log('med data caplets');
+        if (!existingData.medicines) {
+          existingData.medicines = { suspension: [], caplets: [] };
+        }
+        existingData.medicines.caplets = data; // Fix: Assign directly
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existingData, null, 2));
+        res.status(200).json({ success: true });     
+      } else {
+        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2));
+        res.status(200).json({ success: true });
+      }
+    } else {
+        res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
+        res.status(405).json({ error: `Method ${req.method} not allowed` });
+      }
 }

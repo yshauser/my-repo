@@ -155,7 +155,6 @@ export const MedicineDialog: React.FC<MedicineDialogProps > = ({
                   className="w-full p-2 border rounded text-right"
                   placeholder="משקל"
                   value={weight}
-                  // onChange={(e) => setWeight(e.target.value)}
                   onChange={(e) => {
                     const value = e.target.value;
                     // Allow empty input or valid number with up to one decimal
@@ -163,7 +162,7 @@ export const MedicineDialog: React.FC<MedicineDialogProps > = ({
                       setWeight(value);
                     }
                   }}
-                  required
+                  // required
                 />
               </div>
             </div>

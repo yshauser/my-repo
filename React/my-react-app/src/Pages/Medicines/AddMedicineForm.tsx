@@ -1,91 +1,141 @@
-import React, { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Minus, X } from 'lucide-react';
+import {Medicine, MedicineType, TargetAudience, SuspensionEntry, SuspensionMedicine, CapletEntry, CapletMedicine} from '../../types';
+import { constrainPoint } from '@fullcalendar/core/internal';
 
-interface Entry {
-  w_low?: number;
-  w_high?: number;
-  dos?: number;
-  perDay_low?: number;
-  perDay_high?: number;
-  maxDayPerKg?: number;
-  age_low?: number;
-  age_high?: number;
-  dos_low?: number;
-  dos_high?: number;
-  hoursInterval_low?: number;
-  hoursInterval_high?: number;
-  maxDay?: number;
+interface AddMedicineFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (medicine: Medicine) => void;
+  editingMedicine: Medicine | null;
 }
 
-const AddMedicineForm = () => {
-  const [medicineType, setMedicineType] = useState('suspension');
-  const [formData, setFormData] = useState<{
-    id: string;
-    type: string;
-    name: string;
-    hebName: string;
-    activeIngredient: string;
-    targetAudiance: string;
-    concentration: string;
-    strength: string;
-    entries: Entry[];
-  }>({
-    id: generateId(),
-    type: 'suspension',
-    name: '',
-    hebName: '',
-    activeIngredient: '',
-    targetAudiance: 'ילדים',
-    concentration: '',
-    strength: '',
-    entries: [{} as Entry] // Initialize with an empty Entry object
-  });
+const createEmptySuspensionEntry = (): SuspensionEntry => ({
+  w_low: 0,
+  w_high: 0,
+  dos: 0,
+  perDay_low: 0,
+  perDay_high: 0,
+  maxDay: 0,
+  maxDayPerKg: 0
+});
+
+const createEmptyCapletEntry = (): CapletEntry => ({
+  age_low: 0,
+  age_high: undefined,
+  dos_low: 0,
+  dos_high: 0,
+  hoursInterval_low: 0,
+  hoursInterval_high: 0,
+  maxDay: 0
+});
+
+const createEmptySuspensionMedicine = (id: string): SuspensionMedicine => ({
+  id,
+  type: MedicineType.Suspension,
+  name: '',
+  hebName: '',
+  activeIngredient: '',
+  targetAudience: TargetAudience.Kids,
+  concentration: '',
+  entries: [createEmptySuspensionEntry()]
+});
+
+const createEmptyCapletMedicine = (id: string): CapletMedicine => ({
+  id,
+  type: MedicineType.Caplets,
+  name: '',
+  hebName: '',
+  activeIngredient: '',
+  targetAudience: TargetAudience.Kids,
+  strength: '',
+  entries: [createEmptyCapletEntry()]
+});
+
+export const AddMedicineForm: React.FC<AddMedicineFormProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  editingMedicine
+  }) => {
+  // const [medicineType, setMedicineType] = useState<MedicineType>(MedicineType.Suspension);
+  const [formData, setFormData] = useState<Medicine>(createEmptySuspensionMedicine(generateId()));
   const [submitStatus, setSubmitStatus] = useState({ success: false, error: '' });
+
+  useEffect(() => {
+    if (editingMedicine) {
+      setFormData(editingMedicine);
+    }
+  },[editingMedicine]);
 
   // Function to generate a unique ID
   function generateId() {
-    // return 'med_' + Math.random().toString(36).substr(2, 9);
-    return 'med_' + Date.now().toString();
+      return 'med_' + Date.now().toString();
   }
   
   const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const {name, value} = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]:value
     }));
   };
 
   const handleMedicineTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newType = e.target.value;
-    setMedicineType(newType);
-    setFormData(prev => ({
-      ...prev,
-      type: newType
-    }));
+    const newType = e.target.value as MedicineType;
+    // Reset form data with appropriate type specific fields
+    setFormData(
+      newType === MedicineType.Suspension
+      ? createEmptySuspensionMedicine(generateId())
+      : createEmptyCapletMedicine (generateId())
+    );
   };
 
-  const handleEntryChange = (index: number, field: string, value: number|string) => {
+  const handleEntryChange = (index: number, field: string, value: string) => {
+    const numValue = parseFloat(value);
     setFormData(prev => {
-      const newEntries = [...prev.entries];
+      if (prev.type === MedicineType.Suspension){
+        const medicine = prev as SuspensionMedicine;
+        const newEntries = [...prev.entries];
       newEntries[index] = {
         ...newEntries[index],
-        [field]: typeof value === 'string' ? parseFloat(value) || value : value      };
-      return { ...prev, entries: newEntries };
+        [field]: numValue
+      };
+        return { ...medicine, entries: newEntries };
+      }else{
+        const medicine = prev as CapletMedicine;
+        const newEntries = [...prev.entries];
+        newEntries[index] = {
+        ...newEntries[index],
+        [field]: numValue
+      };
+       return { ...medicine, entries: newEntries };
+      }
     });
   };
 
   const addEntry = () => {
-    setFormData(prev => ({
-      ...prev,
-      entries: [...prev.entries, {}]
-    }));
+    setFormData(prev => {
+      if (prev.type === MedicineType.Suspension){
+        const medicine = prev as SuspensionMedicine;
+        return { ...medicine, entries: [...medicine.entries, createEmptySuspensionEntry()]};
+      } else {
+        const medicine = prev as CapletMedicine;
+        return { ...medicine, entries: [...medicine.entries, createEmptyCapletEntry()]};
+      }
+    });
   };
 
   const removeEntry = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      entries: prev.entries.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      if (prev.type === MedicineType.Suspension){
+        const medicine = prev as SuspensionMedicine;
+        return { ...medicine, entries: medicine.entries.filter((_, i) => i !== index)};
+      } else {
+        const medicine = prev as CapletMedicine;
+        return { ...medicine, entries: medicine.entries.filter((_, i) => i !== index)};;
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,23 +148,19 @@ const AddMedicineForm = () => {
         body: JSON.stringify({
           data: formData,
           filename: 'medicines',
-          type: medicineType
+          type: formData.type
         })
       });
       
       setSubmitStatus({ success: true, error: '' });
-      // Reset form with new ID
-      setFormData({
-        id: generateId(),
-        type: medicineType,
-        name: '',
-        hebName: '',
-        activeIngredient: '',
-        targetAudiance: '',
-        concentration: '',
-        strength: '',
-        entries: [{}]
-      });
+      onSave(formData);
+
+      // Reset form with appropriate type
+      setFormData(
+        formData.type === MedicineType.Suspension
+        ? createEmptySuspensionMedicine(generateId())
+        : createEmptyCapletMedicine (generateId())
+      );    
     } catch (error) {
       if (error instanceof Error) {
         setSubmitStatus({ success: false, error: error.message });
@@ -123,10 +169,21 @@ const AddMedicineForm = () => {
       }    }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6 text-emerald-600">הוספת תרופה חדשה</h2>
-      
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-6 text-emerald-600">
+          {editingMedicine ? 'עריכת תרופה' : 'הוספת תרופה חדשה'}
+        </h2>
+
       {submitStatus.success && (
         <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg">
           <div className="flex items-center">
@@ -152,7 +209,7 @@ const AddMedicineForm = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <select
-            value={medicineType}
+            value={formData.type}
             onChange={handleMedicineTypeChange}
             className="w-full p-2 border rounded"
           >
@@ -161,8 +218,8 @@ const AddMedicineForm = () => {
           </select>
 
           <select
-            name="targetAudiance"
-            value={formData.targetAudiance}
+            name="targetAudience"
+            value={formData.targetAudience}
             onChange={handleBasicInfoChange}
             className="w-full p-2 border rounded"
             required
@@ -170,16 +227,6 @@ const AddMedicineForm = () => {
               <option value="ילדים">ילדים</option>
               <option value="מבוגרים">מבוגרים</option>
           </select>
-
-          {/* <input
-            type="text"
-            name="id"
-            placeholder="מזהה (ID)"
-            value={formData.id}
-            onChange={handleBasicInfoChange}
-            className="w-full p-2 border rounded"
-            required
-          /> */}
 
           <input
             type="text"
@@ -211,7 +258,7 @@ const AddMedicineForm = () => {
             required
           />
 
-          {medicineType === 'suspension' ? (
+          {formData.type === 'suspension' ? (
             <input
               type="text"
               name="concentration"
@@ -248,13 +295,13 @@ const AddMedicineForm = () => {
 
           {formData.entries.map((entry, index) => (
             <div key={index} className="p-4 border rounded space-y-4">
-              {medicineType === 'suspension' ? (
+              {formData.type === 'suspension' ? (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <input
                       type="number"
                       placeholder="משקל מינימום"
-                      value={entry.w_low || ''}
+                      value={formData.entries[0].w_low || ''}
                       onChange={(e) => handleEntryChange(index, 'w_low', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -262,7 +309,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="משקל מקסימום"
-                      value={entry.w_high || ''}
+                      value={formData.entries[0].w_high || ''}
                       onChange={(e) => handleEntryChange(index, 'w_high', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -272,7 +319,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="מינון (מ״ל)"
-                      value={entry.dos || ''}
+                      value={formData.entries[0].dos || ''}
                       onChange={(e) => handleEntryChange(index, 'dos', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -281,7 +328,7 @@ const AddMedicineForm = () => {
                       <input
                         type="number"
                         placeholder="מינימום ליום"
-                        value={entry.perDay_low || ''}
+                        value={formData.entries[0].perDay_low || ''}
                         onChange={(e) => handleEntryChange(index, 'perDay_low', e.target.value)}
                         className="p-2 border rounded"
                         required
@@ -289,7 +336,7 @@ const AddMedicineForm = () => {
                       <input
                         type="number"
                         placeholder="מקסימום ליום"
-                        value={entry.perDay_high || ''}
+                        value={formData.entries[0].perDay_high || ''}
                         onChange={(e) => handleEntryChange(index, 'perDay_high', e.target.value)}
                         className="p-2 border rounded"
                         required
@@ -303,7 +350,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="גיל מינימום"
-                      value={entry.age_low || ''}
+                      value={formData.entries[0].age_low || ''}
                       onChange={(e) => handleEntryChange(index, 'age_low', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -311,7 +358,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="גיל מקסימום"
-                      value={entry.age_high || ''}
+                      value={formData.entries[0].age_high || ''}
                       onChange={(e) => handleEntryChange(index, 'age_high', e.target.value)}
                       className="p-2 border rounded"
                     />
@@ -321,7 +368,7 @@ const AddMedicineForm = () => {
                       <input
                         type="number"
                         placeholder="מינון מינימום"
-                        value={entry.dos_low || ''}
+                        value={formData.entries[0].dos_low || ''}
                         onChange={(e) => handleEntryChange(index, 'dos_low', e.target.value)}
                         className="p-2 border rounded"
                         required
@@ -329,7 +376,7 @@ const AddMedicineForm = () => {
                       <input
                         type="number"
                         placeholder="מינון מקסימום"
-                        value={entry.dos_high || ''}
+                        value={formData.entries[0].dos_high || ''}
                         onChange={(e) => handleEntryChange(index, 'dos_high', e.target.value)}
                         className="p-2 border rounded"
                         required
@@ -348,7 +395,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="שעות מינימום בין מינונים"
-                      value={entry.hoursInterval_low || ''}
+                      value={formData.entries[0].hoursInterval_low || ''}
                       onChange={(e) => handleEntryChange(index, 'hoursInterval_low', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -356,7 +403,7 @@ const AddMedicineForm = () => {
                     <input
                       type="number"
                       placeholder="שעות מקסימום בין מינונים"
-                      value={entry.hoursInterval_high || ''}
+                      value={formData.entries[0].hoursInterval_high || ''}
                       onChange={(e) => handleEntryChange(index, 'hoursInterval_high', e.target.value)}
                       className="p-2 border rounded"
                       required
@@ -381,10 +428,11 @@ const AddMedicineForm = () => {
         <button
           type="submit"
           className="w-full bg-emerald-600 text-white p-3 rounded hover:bg-emerald-700 transition-colors"
-        >
-          הוסף תרופה
+          >
+          {editingMedicine ? 'שמור שינויים' : 'הוסף תרופה'}
         </button>
       </form>
+      </div>
     </div>
   );
 };

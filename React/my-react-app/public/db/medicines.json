@@ -15,7 +15,7 @@
         "id": 2001,
         "name": "Ibuprofen Suspension 20mg/1ml",
         "type": "suspension",
-        "targetAudiance": "ילדים",
+        "targetAudience": "ילדים",
         "activeIngredient": "Ibuprofen",
         "concentration": "20mg/1ml",
         "hebName": "נורופן לילדים",
@@ -105,7 +105,7 @@
         "id": 2002,
         "name": "Novimol Tiptipot Suspension 100mg/1ml",
         "type": "suspension",
-        "targetAudiance": "ילדים",
+        "targetAudience": "ילדים",
         "activeIngredient": "Paracetamol",
         "concentration": "100mg/1ml",
         "hebName": "נובימול טיפטיפות",
@@ -235,7 +235,7 @@
         "name": "Nurofen Forte",
         "hebName": "נורופן פורטה",
         "activeIngredient": "Ibuprofen",
-        "targetAudiance": "ילדים",
+        "targetAudience": "ילדים",
         "concentration": "40mg/1ml",
         "strength": "",
         "entries": [
@@ -261,7 +261,7 @@
         "id": 1001,
         "name": "Acamol 500mg",
         "type": "caplets",
-        "targetAudiance": "כולם",
+        "targetAudience": "כולם",
         "activeIngredient": "Paracetamol",
         "strength": "500mg",
         "hebName": "אקמול 500",
@@ -296,7 +296,7 @@
         "id": 1101,
         "name": "Ibuprofen 200mg",
         "type": "caplets",
-        "targetAudiance": "מבוגרים",
+        "targetAudience": "מבוגרים",
         "activeIngredient": "Ibuprofen",
         "strength": "200mg",
         "hebName": "איבופרופן 200",
@@ -327,7 +327,7 @@
         "id": 1102,
         "name": "Ibuprofen 400mg",
         "type": "caplets",
-        "targetAudiance": "מבוגרים",
+        "targetAudience": "מבוגרים",
         "activeIngredient": "Ibuprofen",
         "strength": "400mg",
         "hebName": "איבופרופן 400",
@@ -360,7 +360,7 @@
         "name": "Kalbeten Forte",
         "hebName": "קלבטן פורטה",
         "activeIngredient": "bismuth subsalicylate",
-        "targetAudiance": "מבוגרים",
+        "targetAudience": "מבוגרים",
         "concentration": "",
         "strength": "524mg",
         "entries": [
@@ -371,6 +371,25 @@
             "maxDay": 8,
             "hoursInterval_low": 0.5,
             "hoursInterval_high": 1
+          }
+        ]
+      },
+      {
+        "id": "med_1739964909456",
+        "type": "caplets",
+        "name": "OPTALGIN",
+        "hebName": "אופטלגין",
+        "activeIngredient": "DIPYRONE",
+        "targetAudience": "מבוגרים",
+        "strength": "500 mg",
+        "entries": [
+          {
+            "age_low": 15,
+            "dos_low": 1,
+            "dos_high": 2,
+            "hoursInterval_low": 6,
+            "hoursInterval_high": 8,
+            "maxDay": 8
           }
         ]
       }

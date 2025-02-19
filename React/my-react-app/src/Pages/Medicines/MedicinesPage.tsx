@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
-import { SuspensionMedicine, CapletMedicine, MedicineType, TargetAudiance } from '../../types';
+import {useNavigate} from 'react-router-dom';
+import { SuspensionMedicine, CapletMedicine, MedicineType, TargetAudience } from '../../types';
 import { MedicineManager, MedicineGroup } from '../../services/medicineManager';
-import AddMedicineForm from './AddMedicineForm';
 import { useAuth } from '../../Users/AuthContext';
 
 type OrganizationType = 'type' | 'audience';
 
 export const MedicinesPage = () => {
+  const navigate = useNavigate();
   const {user} = useAuth(); // Get the logged-in user
-  const [selectedType, setSelectedType] = useState<MedicineType |TargetAudiance| null>(null);
+  const [selectedType, setSelectedType] = useState<MedicineType |TargetAudience| null>(null);
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineGroup | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [organizationMethod, setOrganizationMethod] = useState<OrganizationType>('type');
-
-  const medicineGroups = MedicineManager.getMedicineGroups();
-
-  // const getMedicinesByType = (type: MedicineType) => {
-  //   return medicineGroups.filter(group => group.data[0].type === type);
-  // };
 
   const handleBackClick = () => {
     if (selectedMedicine) {
@@ -88,14 +83,14 @@ export const MedicinesPage = () => {
               </button>
             ))
           ) : (
-            Object.values(TargetAudiance).map((type) => (
+            Object.values(TargetAudience).map((type) => (
               <button
                 key={type}
                 onClick={() => setSelectedType(type)}
                 className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
               >
-                {type === TargetAudiance.Adults ? 'מבוגרים' : 
-                 type === TargetAudiance.Kids ? 'ילדים' : type}
+                {type === TargetAudience.Adults ? 'מבוגרים' : 
+                 type === TargetAudience.Kids ? 'ילדים' : type}
               </button>
             )))}
         </div>
@@ -110,8 +105,8 @@ export const MedicinesPage = () => {
              selectedType === 'kids' ? 'תרופות לילדים' : 'תרופות למבוגרים'}
           </h2>
           {(organizationMethod === 'type' 
-            ? MedicineManager.findMedicinesByType(selectedType as MedicineType)
-            : MedicineManager.findMedicinesByTargetAudiance(selectedType as string)
+            ? MedicineManager.findMedicinesGroupsByType(selectedType as MedicineType)
+            : MedicineManager.findMedicinesByTargetAudience(selectedType as string)
           ).map((medicineGroup) => (
             <button
               key={medicineGroup.name}
@@ -124,54 +119,10 @@ export const MedicinesPage = () => {
         </div>
       )}
 
-      {/* Medicine Types Selection */}
-      {/* {!selectedType && !selectedMedicine && (
-        <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-          <h2 className="text-xl text-emerald-600 mb-2 text-center">בחר סוג תרופה</h2>
-          {Object.values(MedicineType).map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
-            >
-              {type === MedicineType.Suspension ? 'תרחיפים' : 
-               type === MedicineType.Caplets ? 'קפליות' : type}
-            </button>
-          ))}
-        </div>
-      )} */}
-
-      {/* Medicine List By Type */}
-      {/* {selectedType && !selectedMedicine && (
-        <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-          <h2 className="text-xl text-emerald-600 mb-2 text-center">
-            {selectedType === MedicineType.Suspension ? 'תרחיפים' : 
-             selectedType === MedicineType.Caplets ? 'קפליות' : selectedType}
-          </h2>
-          {MedicineManager.findMedicinesByType(selectedType).map((medicineGroup) => (
-            <button
-              key={medicineGroup.name}
-              onClick={() => setSelectedMedicine(medicineGroup)}
-              className="bg-emerald-600 text-white p-4 rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-right"
-            >
-              {medicineGroup.name}
-            </button>
-          ))}
-        </div>
-      )} */}
-
       {/* Medicine Details Table */}
       {selectedMedicine && (
         <div className="w-full mb-8">
-          {/* <button
-            onClick={() => setSelectedMedicine(null)}
-            className="mb-4 text-emerald-600 hover:text-emerald-700 flex items-center gap-2"
-          >
-            <span>←</span> חזור לרשימה
-          </button> */}
-
-          <h2 className="text-xl text-emerald-600 mb-4">{selectedMedicine.name}</h2>
-          
+          <h2 className="text-xl text-emerald-600 mb-4">{selectedMedicine.name}</h2>        
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
               <thead>
@@ -227,7 +178,7 @@ export const MedicinesPage = () => {
                     ) : (
                       <>
                         <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_low}</td>
-                        <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_high}</td>
+                        <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).age_high ? ((item as CapletMedicine["entries"][0]).age_high):('∞')}</td>
                         {(item as CapletMedicine["entries"][0]).dos_high === (item as CapletMedicine["entries"][0]).dos_low ? (
                           <td className="border p-2 text-right">{(item as CapletMedicine["entries"][0]).dos_low}</td>
                         ) : (
@@ -253,21 +204,15 @@ export const MedicinesPage = () => {
       <div className="w-full mt-8">
         {/* Show this section only for admin or owner */}
         {user?.role === 'admin' || user?.role === 'owner' ? (
-          // {/* Add Medicine Button and Form */}
           <div className="w-full max-w-md mx-auto">
             <button
-              onClick={() => setShowAddForm(!showAddForm)}
+              onClick={() => navigate('/Settings/medicines')}
               className="w-full bg-emerald-600 text-white p-3 rounded hover:bg-emerald-700 transition-colors"
             >
-              {showAddForm ? 'סגור טופס' : 'הוסף תרופה חדשה'}
+              ניהול תרופות
             </button>
           </div>
           ) : null}
-        {showAddForm && user?.role !== 'user' && (
-          <div className="max-w-md mx-auto mt-4">
-            <AddMedicineForm />
-          </div>
-        )}
       </div>
     </main>
   );

@@ -32,9 +32,9 @@ const LoginDialog = ({ onClose }: { onClose: () => void }) => {
         {error && (
           <p className="text-red-500 mb-2">{error}</p>
         )}
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">ביטול</button>
+        <div className="flex justify-center gap-3 mt-4">
           <button onClick={handleLogin} className="px-4 py-2 bg-emerald-600 text-white rounded">כניסה</button>
+          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">ביטול</button>
         </div>
       </div>
     </div>

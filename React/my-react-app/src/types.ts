@@ -55,17 +55,17 @@ export enum MedicineType {
   // Suppository = "suppository"
 }
 
-export enum TargetAudiance {
+export enum TargetAudience {
   Kids = "kids",
   Adults = "adults",
 }
 
 // Basic medicine interfaces
 export interface MedicineBase {
-  id: number;
+  id: string;
   name: string;
   type: MedicineType;
-  targetAudiance: string;
+  targetAudience: string;
   activeIngredient: string;
   hebName: string;
   aliases?: {
