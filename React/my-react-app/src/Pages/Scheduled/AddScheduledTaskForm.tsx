@@ -64,8 +64,8 @@ export const AddScheduledTaskForm: React.FC<AddScheduledTaskFormProps> = ({
   }, [formData.taskDays]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-y-auto">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">{isEditMode ? 'עריכת תרופה תקופתית' : 'הוספת תרופה תקופתית חדשה'}</h2>          
             <button

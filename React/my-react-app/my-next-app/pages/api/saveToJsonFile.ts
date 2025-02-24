@@ -111,16 +111,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const updatedEntry = req.body.data;
         const existingIndex = existingData.findIndex((entry: { id: string }) => entry.id === updatedEntry.id);
         if (existingIndex !== -1) {
-          // Overwrite the existing entry
           existingData[existingIndex] = updatedEntry;
-          console.log ('index', existingIndex, updatedEntry)
+          console.log ('Overwrite the existing entry', {existingIndex, updatedEntry});
         } else {
+          console.log ('Else POST');
           if (type === 'kids-order'|| type === 'scheduled'){
             // empty the existing data so the kids-list will replace the exisiting data
             // existingData = [];
+            console.log ('kids-order/scheduled - no need for []');
             existingData = updatedEntry;
-          }else{
+          }else if (type === 'log'){
+            existingData = updatedEntry.flat();
+        }else{
             // Add as a new entry
+            console.log ('existingIndex', {existingIndex, updatedEntry})
             existingData.push(updatedEntry);
           }
         }

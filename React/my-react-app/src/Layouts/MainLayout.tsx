@@ -7,6 +7,7 @@ import { HomePage } from '../Pages/Home/HomePage'
 import { LogPage } from '../Pages/Log/LogPage';
 import { MedicinesPage } from '../Pages/Medicines/MedicinesPage';
 import { KidsPage } from '../Pages/Kids/KidsPage';
+import { NotFoundPage } from '../Pages/NotFound';
 import { LogEntry } from '../types';
 import ScheduledPage from '../Pages/Scheduled/ScheduledPage';
 import MedicineManagement from '../Pages/Settings/MedicineManagement';
@@ -27,6 +28,7 @@ export const MainLayout = () => {
           <Route path="/kids" element={<KidsPage />} />
           <Route path="/settings/users" element={<UserManagement />} />
           <Route path="/settings/medicines" element={<MedicineManagement />} />
+          <Route path="*" element={<NotFoundPage/>}/>
         </Routes>
         <Navigation />
       </div>

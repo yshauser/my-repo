@@ -1,6 +1,7 @@
 // src/components/MedicineDialog.tsx
 import React, { useState, useEffect } from 'react';
 import { MedicineManager } from '../services/medicineManager';
+import { LogManager } from '../services/logManager';
 import { LogEntry } from '../types';
 
 interface MedicineDialogProps {
@@ -105,19 +106,31 @@ export const MedicineDialog: React.FC<MedicineDialogProps > = ({
     }
   };
       
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try{
     const now = new Date();
     const logHour = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
     const logDate = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getFullYear()).slice(-2);
    
-    const logEntry: LogEntry = {
+    const newLogEntry: LogEntry = {
       id: crypto.randomUUID(),  
       logDate, logHour, kidName, temperature, selectedMedicine, actualDosage
     };
-    setLogData([...logData, logEntry]);
-    console.log(' log entry:', {logEntry}); // For debugging
+    const loadedLogs = await LogManager.loadLogs();
+    const updatedLogs = [...loadedLogs, newLogEntry];
+    setLogData(updatedLogs);
+    // console.log(' log entry:', {logData, loadedLogs, newLogEntry}); // For debugging
+
+    // Save to file
+    await LogManager.saveLogs(updatedLogs);
+
     onClose();
+    }catch (error){
+      console.error ('Failed saving log entry: ', error)
+      setLogData(logData);       // Optionally revert the state if save fails
+      alert('שגיאה בשמירת הרשומה. אנא נסה שנית.'); // Optionally show an error message to the user
+    }
   };
 
   if (!isOpen) return null;

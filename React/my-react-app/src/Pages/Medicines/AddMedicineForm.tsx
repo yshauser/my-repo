@@ -177,28 +177,8 @@ export const AddMedicineForm: React.FC<AddMedicineFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log ('handle submit', {formData});
-    // try {
-    //   await fetch('/api/saveToJsonFile', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       data: formData,
-    //       filename: 'medicines',
-    //       type: formData.type
-    //     })
-    //   });
-      
-    //   setSubmitStatus({ success: true, error: '' });
       onSave(formData);
       onReset();  // Reset form with appropriate type
-      
-    // } catch (error) {
-    //   if (error instanceof Error) {
-    //     setSubmitStatus({ success: false, error: error.message });
-    //   } else {
-    //     setSubmitStatus({ success: false, error: 'An unknown error occurred' });
-    //   }   
-    // }
   };
 
   const onReset= () => {
@@ -236,27 +216,6 @@ export const AddMedicineForm: React.FC<AddMedicineFormProps> = ({
           </button>
           </div>
         </div>
-        {/* {submitStatus.success && (
-          <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg">
-            <div className="flex items-center">
-              <svg className="w-6 h-6 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>התרופה נוספה בהצלחה!</span>
-            </div>
-          </div>
-        )} */}
-      
-        {/* {submitStatus.error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
-            <div className="flex items-center">
-              <svg className="w-6 h-6 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              <span>שגיאה: {submitStatus.error}</span>
-            </div>
-          </div>
-        )} */}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

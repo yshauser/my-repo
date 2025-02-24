@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Edit2, CheckCircle, XCircle, ArrowUpDown, Download, Upload, Save, FileX } from 'lucide-react';
 import { LogManager } from '../../services/logManager';
 import { LogEntry } from '../../types';
-
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { timeAndDateFormatter } from '../../services/uiUtils';
 
 interface LogPageProps {
   logData: LogEntry[];
@@ -14,22 +16,36 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEntry, setEditedEntry] = useState<LogEntry | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [loadOption, setLoadOption] = useState('week'); // Default to week
 
   // Initial load of logs
-  useEffect(() => {
-        setLogData(logData);
-  }, [setLogData]);
-  
+    useEffect(() => {
+      const fetchLogs = async () => {
+        const loadedLogs = await LogManager.loadLogs();
+        console.log ('Page-Logs use effect loaded logs', {loadedLogs, logData});
+          // Combine existing logData with loadedLogs and remove duplicates based on 'id'
+          const combinedLogsMap = new Map();
+          [...logData, ...loadedLogs].forEach(log => combinedLogsMap.set(log.id, log));
+          const combinedLogs = Array.from(combinedLogsMap.values());
+          const filteredData = filterLogsByDate(combinedLogs, loadOption);
+          setLogData(filteredData);
+          
+          const nameExists = filteredData.some(entry => entry.kidName === filters.name);
+          if (!nameExists) {setFilters(prev => ({...prev, name: ''}));} // name: '' appears in the UI with the label הכל
+        console.log ('Page-Logs use effect loaded filtered logs', {loadOption,filteredData});
+      };
+      fetchLogs().catch(error => console.error('Error in useEffect fetchLogs:', error));
+    }, [loadOption]);
+
   // Sort and filter the data
   const sortedAndFilteredData = useMemo(() => {
     let filteredData = [...logData].filter(entry => {
       const dateMatch = !filters.date || entry.logDate.includes(filters.date);
-      const nameMatch = !filters.name || entry.kidName.toLowerCase().includes(filters.name.toLowerCase());
+      // const nameMatch = !filters.name || entry.kidName.toLowerCase().includes(filters.name.toLowerCase());
+      const nameMatch = !filters.name || entry.kidName === filters.name;
       return dateMatch && nameMatch;
     });
-
+    // console.log ('in sortedAndFilteredData', filteredData);
     return filteredData.sort((a, b) => {
       const dateA = new Date(`20${a.logDate.split('/').reverse().join('/')} ${a.logHour}`);
       const dateB = new Date(`20${b.logDate.split('/').reverse().join('/')} ${b.logHour}`);
@@ -60,8 +76,10 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
 
   // delete entry from table in page
   const handleDelete = (id: string) => {
-      console.log ('Log delete', {setLogData, logData});
+      console.log ('Log delete', {logData});
+      LogManager.deleteLog(id);
       setLogData(prevData =>prevData.filter(entry => entry.id !== id));
+      
   };
 
   // edit entry from table in page
@@ -78,9 +96,25 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
   const handleSave = async (id: string) => {
     console.log ('Log save', logData);
     if (!editedEntry) return;
-    setLogData(prevData => prevData.map(entry => entry.id === id ? { ...editedEntry, id } : entry));
-    setEditingId(null);
-    setEditedEntry(null);
+
+    // Validate hour format
+    if (!timeAndDateFormatter.validateHourFormat(editedEntry.logHour)) {
+      alert('שעה לא תקינה. אנא הזן שעה בפורמט תקין (לדוגמה: 09:30)');
+      return;
+    }
+    // save update with all entries to file, 
+    // but update to presentation (setLogData) only the loaded table
+    const loadedLogs = await LogManager.loadLogs();
+    const updatedLogs = loadedLogs.map(entry => entry.id === id ? { ...editedEntry, id } : entry);
+    setLogData(logData.map(entry => entry.id === id ? { ...editedEntry, id } : entry)); 
+    console.log ('Log save editedEntry', {updatedLogs});
+    try {
+      await LogManager.saveLogs(updatedLogs); // Persist data to file
+      setEditingId(null);
+      setEditedEntry(null);
+    } catch (error) {
+      console.error('Error saving log:', error);
+    }
   };
 
   // revert changes of table's entry in page
@@ -90,77 +124,76 @@ export const LogPage: React.FC<LogPageProps> = ({ logData, setLogData }) => {
     setEditedEntry(null);
   };
 
+  const handleExport = () => {
+    console.log ('Log export', logData);
+    LogManager.exportLog(logData);
+  };
+
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   };
 
-// File Operations
-const handleSaveToFile = async () => {
-  try {
-    await LogManager.saveLogs(logData);
-    alert('data saved successfully');
-  } catch (error) {
-    alert('Error saving file: ' + error);
-  }
-};
-
-const handleUpdateFile = async () => {
-  try {
-    await LogManager.saveLogs(logData);
-    alert ('file updated successfully');
-  } catch (error) {
-    alert('Error updating file: ' + error);
-  }
-};
-
-const handleLoadFromFile = () => {
-  setIsLoadDialogOpen(true);
-};
-
-const handleLoadConfirm = async () => {
-  try {
-    const allData = await LogManager.loadLogs();
-    const filteredData = filterLogsByDate(allData, loadOption);
-    setLogData(filteredData);
-    setIsLoadDialogOpen(false);
-    // alert('נתונים נטענו בהצלחה');
-  } catch (error) {
-    alert('שגיאה בטעינת הנתונים: ' + error);
-  }
-};
-
-const handleClearFile = async () => {
-  if (window.confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
-    try {
-      await LogManager.saveLogs([]);
-      setLogData([]);
-      alert('הנתונים נמחקו בהצלחה');
-    } catch (error) {
-      alert('שגיאה במחיקת הנתונים: ' + error);
-    }
-  }
-};
+  // Handle hour input change with automatic formatting
+  const handleHourChange = (value: string) => {
+    const formattedHour = timeAndDateFormatter.formatHourInput(value);
+    setEditedEntry((prev: LogEntry|null) => prev ? { ...prev, logHour: formattedHour } : null);
+  };
+  
+  // Handle date change with null check
+  const handleDateChange = (date: Date | null) => {
+    setEditedEntry((prev: LogEntry | null) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        logDate: date ? timeAndDateFormatter.dateToString(date) : prev.logDate
+      };
+    });
+  };
 
   return (
     <main className="flex-1 flex flex-col p-5 bg-white overflow-auto">
-      <h1 className="text-2xl text-emerald-600 mb-6 text-center">יומן</h1>
-      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl text-emerald-600 mb-6 text-center">יומן</h1>
+        <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+          >
+            <Download size={20} />
+            יצא לקובץ
+          </button>
+      </div>
+
       {/* Filters */}
-      <div className="mb-4 justify-center flex gap-4">
-        <input
-          type="text"
-          placeholder="סנן לפי תאריך"
-          className="p-2 border rounded text-right"
-          value={filters.date}
-          onChange={e => setFilters(prev => ({ ...prev, date: e.target.value }))}
-        />
-        <input
-          type="text"
-          placeholder="סנן לפי שם"
-          className="p-2 border rounded text-right"
-          value={filters.name}
-          onChange={e => setFilters(prev => ({ ...prev, name: e.target.value }))}
-        />
+      <div className="mb-4 justify-center items-center flex gap-4">
+        <label className="ml-2">
+          הצג: 
+          <select value={loadOption} 
+            className="p-2 border rounded text-right mr-2"
+            onChange={(e) => setLoadOption(e.target.value)}
+            >
+            <option value="all">הכל</option>
+            <option value="week">שבוע</option>
+            <option value="24h">24 שעות</option>
+            <option value="48h">48 שעות</option>
+          </select>
+        </label>
+        <label className="ml-2">
+          סנן לפי שם:
+          <select
+            className="p-2 border rounded text-right mr-2"
+            value={filters.name}
+            onChange={(e) => setFilters((prev) => ({ ...prev, name: e.target.value }))}
+            >
+            <option value="">הכל</option>
+            {Array.from(new Set(logData.map(entry => entry.kidName))) // Extract unique names
+              .map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+            ))}
+          </select>
+        </label>
+
       </div>
 
       {sortedAndFilteredData.length > 0 ? (
@@ -191,17 +224,25 @@ const handleClearFile = async () => {
                     <>
                       <td className="border border-gray-300 p-2">
                         <div className="flex gap-2">
-                          <input
+                          {/* <input
                             type="text"
                             className="p-1 border rounded w-24 text-right"
                             value={editedEntry?.logDate}
                             onChange={e => setEditedEntry(prev => prev ? { ...prev, logDate: e.target.value } : null)}
-                          />
+                          /> */}
+                          <DatePicker
+                            selected = {timeAndDateFormatter.stringToDate(editedEntry?.logDate || '')}
+                            onChange={handleDateChange}
+                            dateFormat="dd/MM/yy"
+                            className="p-1 border rounded w-24 text-right"
+                            />
                           <input
                             type="text"
                             className="p-1 border rounded w-16 text-right"
                             value={editedEntry?.logHour}
-                            onChange={e => setEditedEntry(prev => prev ? { ...prev, logHour: e.target.value } : null)}
+                            // onChange={e => setEditedEntry(prev => prev ? { ...prev, logHour: e.target.value } : null)}
+                            onChange={e => handleHourChange(e.target.value)}
+                            placeholder='HH:mm'
                           />
                         </div>
                       </td>
@@ -276,86 +317,6 @@ const handleClearFile = async () => {
       ) : (
         <div className="text-center text-gray-500">לא נמצאו רשומות</div>
       )}
-
-      {/* Load Dialog */}
-      {isLoadDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-semibold mb-4 text-right">בחר טווח זמן לטעינה</h2>
-            
-            <div className="space-y-3">
-              {[
-                { value: '24h', label: '24 שעות אחרונות' },
-                { value: '48h', label: '48 שעות אחרונות' },
-                { value: 'week', label: 'שבוע אחרון' },
-                { value: 'all', label: 'הכל' }
-              ].map((option) => (
-                <label 
-                  key={option.value} 
-                  className="flex items-center justify-end space-x-2 space-x-reverse cursor-pointer"
-                >
-                  <span className="text-right">{option.label}</span>
-                  <input
-                    type="radio"
-                    name="loadOption"
-                    value={option.value}
-                    checked={loadOption === option.value}
-                    onChange={(e) => setLoadOption(e.target.value)}
-                    className="ml-2"
-                  />
-                </label>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={handleLoadConfirm}
-                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-              >
-                טען
-              </button>
-              <button
-                onClick={() => setIsLoadDialogOpen(false)}
-                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-              >
-                ביטול
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* File Operations Buttons */}
-      <div className="mb-4 flex gap-2 justify-center">
-        <button
-          onClick={handleSaveToFile}
-          className="flex items-center gap-1 px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-        >
-          <Save size={16} />
-          שמור לקובץ
-        </button>
-        <button
-          onClick={handleUpdateFile}
-          className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          <Upload size={16} />
-          עדכן קובץ
-        </button>
-        <button
-          onClick={handleLoadFromFile}
-          className="flex items-center gap-1 px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-        >
-          <Download size={16} />
-          טען מקובץ
-        </button>
-        <button
-          onClick={handleClearFile}
-          className="flex items-center gap-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          <FileX size={16} />
-          נקה קובץ
-        </button>
-      </div>
     </main>
   );
 };
