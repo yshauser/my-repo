@@ -1,8 +1,0 @@
-{
-    "liveServer.settings.port": 5501,
-    "css.validate": false,
-    "tailwindCSS.emmetCompletions": true,
-    "editor.quickSuggestions": {
-        "strings": true
-    }
-}
